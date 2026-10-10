@@ -1,22 +1,28 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "oih-bio-tools",
-  "displayName": "OIH Bio Tools",
-  "version": "1.0.0",
-  "description": "17 containerized computational-biology tools (AlphaFold 3, BindCraft, ProteinMPNN, PeSTo, fpocket, P2Rank, Vina-GPU, AutoDock-GPU, GNINA, DiffDock, GROMACS, ESM-2, Chemprop, DiscoTope 3, IgFold, FreeSASA). Each heavy tool runs in its own prebuilt Docker container; model weights live on the host and are mounted into the containers.",
+  "name": "protforge",
+  "displayName": "ProtForge",
+  "version": "2.0.0",
+  "description": "23 computational-biology skills across three runtimes: prebuilt Docker containers (docking, pockets, MD, sequence design, epitopes, ADMET, antibody folding, RFdiffusion backbones), WSL-hosted models (ESMFold2, OpenDDE), and host-side clients (AlphaFold DB, FreeSASA, ReGlyco). AlphaFold 3 is retired in favour of ESMFold2/OpenDDE.",
   "author": {
-    "name": "OIH Bio Tools contributors"
+    "name": "ProtForge contributors"
   },
   "license": "MIT",
-  "homepage": "https://github.com/dy12021/oih-plugin",
-  "repository": "https://github.com/dy12021/oih-plugin.git",
+  "homepage": "https://github.com/dy12021/protforge",
+  "repository": "https://github.com/dy12021/protforge.git",
   "keywords": [
     "bioinformatics",
     "protein",
+    "protein-design",
+    "binder-design",
     "docking",
-    "alphafold",
+    "molecular-dynamics",
+    "structure-prediction",
+    "glycosylation",
+    "antibody",
+    "esmfold2",
     "rfdiffusion",
-    "gromacs",
-    "antibody"
+    "proteinmpnn",
+    "gromacs"
   ]
 }

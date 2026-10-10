@@ -1,0 +1,6 @@
+# Normalise line endings: this tree is full of shell scripts, and a CRLF
+# checkout makes them fail with "\r: command not found" under bash.
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+*.png binary

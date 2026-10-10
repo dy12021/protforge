@@ -1,27 +1,26 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "oih-bio-tools-marketplace",
-  "description": "Computational biology tools (AlphaFold 3, RFdiffusion, ProteinMPNN, PeSTo, BindCraft, fpocket, P2Rank, Vina-GPU, AutoDock-GPU, GNINA, DiffDock, GROMACS, ESM-2, Chemprop, DiscoTope 3, IgFold, FreeSASA). Each tool runs in its own prebuilt Docker container; model weights live on the host and are mounted into the containers.",
+  "name": "protforge-marketplace",
+  "description": "23 computational-biology skills across three runtimes: prebuilt Docker containers (docking, pockets, MD, sequence design, epitopes, ADMET, antibody folding, RFdiffusion backbones), WSL-hosted models (ESMFold2, OpenDDE), and host-side clients (AlphaFold DB, FreeSASA, ReGlyco). AlphaFold 3 is retired in favour of ESMFold2/OpenDDE.",
   "owner": {
     "name": "dy12021",
     "email": ""
   },
   "plugins": [
     {
-      "name": "oih-bio-tools",
-      "displayName": "OIH Bio Tools",
-      "description": "17 containerized computational-biology skills (AlphaFold 3, BindCraft, GROMACS, Vina-GPU, etc.) for protein structure prediction, binder design, pocket analysis, docking, molecular dynamics, ADMET, and ADC design.",
+      "name": "protforge",
+      "displayName": "ProtForge",
+      "description": "23 computational-biology skills across three runtimes: prebuilt Docker containers (docking, pockets, MD, sequence design, epitopes, ADMET, antibody folding, RFdiffusion backbones), WSL-hosted models (ESMFold2, OpenDDE), and host-side clients (AlphaFold DB, FreeSASA, ReGlyco). AlphaFold 3 is retired in favour of ESMFold2/OpenDDE.",
       "author": {
-        "name": "OIH Bio Tools contributors"
+        "name": "ProtForge contributors"
       },
       "category": "science-and-healthcare",
       "source": {
         "source": "github",
-        "repo": "dy12021/oih-plugin",
-        "ref": "main",
-        "sha": "e1decb1c46112d93c397b37f649b42017245d0c3"
+        "repo": "dy12021/protforge",
+        "ref": "main"
       },
-      "homepage": "https://github.com/dy12021/oih-plugin"
+      "homepage": "https://github.com/dy12021/protforge"
     }
   ]
 }
