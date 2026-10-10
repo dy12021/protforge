@@ -50,7 +50,7 @@ ProtForge 刻意把运行时分开，因为它们的 CUDA 构建互不兼容，�
 
 ## 安装
 
-在 MiniMax Code 的「插件 → 导入插件」里粘贴本仓库地址：
+在 各家Code 的「插件 → 导入插件」里粘贴本仓库地址：
 
 ```
 https://github.com/dy12021/protforge.git
@@ -99,19 +99,6 @@ $PROTFORGE_HOME/            # 数据与模型根，默认 E:/protforge
 | `PROTFORGE_VENV` | 探测 | 宿主机 venv（FreeSASA、GNINA 的 SMILES 预处理用） |
 | `PROTFORGE_CONTAINER_<TOOL>` | `protforge-<tool>` | 单个容器名覆盖，如 `PROTFORGE_CONTAINER_VINA_GPU` |
 
-### 从 OIH 迁移
-
-本项目此前名为 OIH。为避免改名把已有部署搞坏，`scripts/_common.sh` 会**自动回落**：
-
-- `OIH_HOME` / `OIH_DATA` / `OIH_MODELS` / `OIH_COMPOSE` / `OIH_MOUNT` 仍然被读取
-- 容器解析顺序是：`PROTFORGE_CONTAINER_<TOOL>` 覆盖 → 已存在的 `protforge-<tool>`
-  容器 → 已存在的 `oih-<tool>` 容器 → `protforge-<tool>`
-- `OIH_CONTAINER_<TOOL>` 覆盖同样有效
-
-也就是说，改名之后**原有的容器、权重和任务输出一个都不用动**。若你的 compose 把数据
-挂载在 `/data/oih`，显式设 `PROTFORGE_MOUNT=/data/oih` 即可。
-
----
 
 ## 输出契约
 
