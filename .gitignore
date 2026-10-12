@@ -42,3 +42,7 @@ venv/
 
 # Plugin runtime artifacts (kept locally by MiniMax Code)
 .minimax/
+
+# Editor / sed backup files (sed -i.bak, cp before patching)
+*.bak
+*.orig

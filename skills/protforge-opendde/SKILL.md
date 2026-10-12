@@ -5,8 +5,22 @@ description: Predict biomolecular complex structures with OpenDDE (Aureka AI Res
 
 # OpenDDE — all-atom co-folding
 
-Host: **AF3Native WSL** (`wsl.exe -d AF3Native`), venv `/esmfold2/venv`,
-`OPENDDE_ROOT_DIR=/esmfold2/opendde`. Licence **Apache-2.0** — commercial use OK.
+Host: **AF3Native WSL** (`wsl.exe -d AF3Native`). Licence **Apache-2.0** —
+commercial use OK.
+
+| Thing | Path (verified 2026-10-11) |
+|---|---|
+| CLI | `/opendde_venv/bin/opendde` (package 1.2.0, Python 3.11, cu126) |
+| weights + CCD assets | `/mnt/e/oih/models/opendde` → `export OPENDDE_ROOT_DIR=...` |
+| checkpoint manifest | `/opendde_venv/lib/python3.11/site-packages/opendde/config/model_manifest.json` |
+
+Earlier revisions of this skill pointed at `/esmfold2/venv` and
+`OPENDDE_ROOT_DIR=/esmfold2/opendde`. Neither is right any more: the venv was
+moved to its own `/opendde_venv` so it does not share a CUDA runtime with
+ESMFold2 (cu130), and the weights live on `E:`. **Never** point
+`OPENDDE_ROOT_DIR` at a directory that lacks `common/components.cif` — the code
+then silently downloads it from `huggingface.co`, which is TCP-refused on this
+box, and the run dies looking like a model failure.
 
 ## Checkpoints
 
@@ -30,20 +44,35 @@ All four files it consumes are symlinked from `/db` at install time:
 | `nt_rna_2023_02_23_..._rep_seq.fasta` | RNA MSA | 75 GB |
 | `rnacentral_active_..._linclust.fasta` | RNA MSA | 13 GB |
 
-It does **not** need AF3's ~400 GB of protein-MSA files (bfd / uniref90 /
-mgy_clusters / uniprot_all) — those serve AF3's own pipeline only.
+It does **not** need AF3's ~200 GB of protein-MSA files (bfd / uniref90 /
+mgy_clusters / uniprot_all) for templates or RNA — those serve AF3's own
+pipeline only.
 
-Protein MSA is the one exception: it goes to the **ColabFold MMseqs2 API**
-(`api.colabfold.com`), which is shared and rate-limited. Supply precomputed a3m
-files instead, or set `MMSEQS_SERVICE_HOST_URL` to a self-hosted endpoint. Use
-`protforge-af3-msa` to generate them locally from `/db`.
+**Protein MSA no longer has to leave the machine.** OpenDDE's MSA client
+(`opendde/data/msa/msa_service_client.py`) posts to `https://api.colabfold.com`
+by default and there is no way to point it at a local database — the only knob
+is `MMSEQS_SERVICE_HOST_URL`, which expects a *server* speaking the ColabFold
+protocol, not a directory of FASTA.
+
+So do not try to configure it. **Generate the a3m locally and hand OpenDDE the
+path**: `protforge-af3-msa` reads AF3's own `/db` with AF3's own jackhmmer
+wrapper and writes `unpairedMsaPath` into the job JSON. Set `unpairedMsaPath`
+only; OpenDDE derives the paired (query-only) alignment itself, which is exactly
+what `search_and_build_msa` does when its paired ColabFold call fails.
 
 ## Command
 
 ```bash
-opendde pred -i job.json -o /esmfold2/out/<job> -n opendde_abag \
-  --use_msa true --use_template false --sample 1 --step 200 --cycle 10
+export OPENDDE_ROOT_DIR=/mnt/e/oih/models/opendde
+export PATH=/opendde_venv/bin:$PATH
+opendde pred -i job.json -o /opendde_msa_test/out \
+  --load_checkpoint_path /mnt/e/oih/models/opendde/opendde_abag.pt \
+  --use_msa true --use_template false --sample 1 --step 200 --cycle 10 --device cuda
 ```
+
+`-n/--name` only accepts `opendde_v1`. The antibody-antigen checkpoint is a
+separate file and is selected with `--load_checkpoint_path`. Passing
+`-n opendde_abag` is rejected.
 
 Other subcommands: `opendde doctor` (verify Python/CUDA/kernels),
 `opendde json` (PDB/CIF → job JSON), `opendde msa` / `mt` / `prep` (MSA,
@@ -56,8 +85,15 @@ Input JSON is a **top-level list** of jobs, each with `sequences` entries
 ```json
 [{"sequences": [
    {"proteinChain": {"sequence": "...", "count": 1,
-                     "pairedMsaPath": "/esmfold2/msa/a.a3m",
-                     "unpairedMsaPath": "/esmfold2/msa/a.a3m"}}]}]
+                     "unpairedMsaPath": "/msashared/consumer/chain_0.a3m"}}]}]
+```
+
+Generate and inject that path in one step (searches `/db`, validates, rewrites
+the job):
+
+```bash
+/alphafold3_venv/bin/python /mnt/e/oih/oih-upgrade/02-newtools/wire_opendde_msa.py \
+  --job job.json --out job_msa.json --dbs uniref90,bfd
 ```
 
 ## Environment overrides
@@ -78,7 +114,7 @@ machine vs 0.3 s for aliyun (37x):
 ```bash
 export UV_DEFAULT_INDEX="https://mirrors.aliyun.com/pypi/simple/"
 export UV_INDEX_URL="$UV_DEFAULT_INDEX"
-uv pip install --python /esmfold2/venv/bin/python --link-mode=copy opendde
+uv pip install --python /opendde_venv/bin/python --link-mode=copy opendde
 ```
 
 **Never run two `uv pip install` against the same venv.** A killed second
