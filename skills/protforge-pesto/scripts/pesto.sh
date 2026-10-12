@@ -29,6 +29,7 @@ C_PDB="$(protforge_container_path "$PDB")"
 C_JSON="$C_OUT/result.json"
 
 protforge_ensure_container protforge-proteinmpnn || { protforge_fail "container protforge-proteinmpnn unavailable"; exit 1; }
+name="$(protforge_container protforge-proteinmpnn)"
 
 # Optional: restrict prediction to a single chain (pesto scores whole structures;
 # gemmi extracts the chain to a container-side scratch file).
@@ -47,7 +48,7 @@ st.write_pdb('/tmp/pesto_in.pdb')
 fi
 
 # predict_cli.py must run with /app/pesto as working directory.
-docker exec -w /app/pesto protforge-proteinmpnn python3 predict_cli.py \
+docker exec -w /app/pesto "$name" python3 predict_cli.py \
   --input "$C_INPUT" \
   --output "$C_JSON" \
   --threshold "$THRESHOLD"
@@ -55,7 +56,7 @@ docker exec -w /app/pesto protforge-proteinmpnn python3 predict_cli.py \
 if [ -f "$OUT_HOST/result.json" ]; then
   echo "PROTFORGE_OUTPUT_DIR: $OUT_HOST"
   echo "PROTFORGE_RESULT_JSON_BEGIN"
-  docker exec protforge-proteinmpnn cat "$C_JSON"
+  docker exec "$name" cat "$C_JSON"
   echo
   echo "PROTFORGE_RESULT_JSON_END"
   protforge_ok

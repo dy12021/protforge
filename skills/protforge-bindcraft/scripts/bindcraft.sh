@@ -50,17 +50,26 @@ cat > "$SETTINGS_HOST" <<EOF
 EOF
 
 protforge_ensure_container protforge-bindcraft || { protforge_fail "container protforge-bindcraft unavailable"; exit 1; }
+name="$(protforge_container protforge-bindcraft)"
 
-# launch detached; progress goes to run.log inside the output dir
-docker exec -d protforge-bindcraft sh -c \
-  "cd /app/BindCraft && python3 -u bindcraft.py --settings '$C_SETTINGS' --filters ./settings_filters/default_filters.json --advanced ./settings_advanced/default_4stage_multimer.json > '$C_OUT/run.log' 2>&1"
+# launch detached; progress goes to run.log inside the output dir.
+# Resolve the container name instead of hardcoding it: deployments created
+# before the OIH -> ProtForge rename still run under `oih-bindcraft`, and a
+# hardcoded `docker exec protforge-bindcraft` dies with "No such container".
+# Under `set -e` that also skips the FAIL marker, breaking the status contract.
+if ! docker exec -d "$name" sh -c \
+  "cd /app/BindCraft && python3 -u bindcraft.py --settings '$C_SETTINGS' --filters ./settings_filters/default_filters.json --advanced ./settings_advanced/default_4stage_multimer.json > '$C_OUT/run.log' 2>&1"; then
+  echo "PROTFORGE_OUTPUT_DIR: $OUT_HOST"
+  protforge_fail "could not launch bindcraft inside container '$name'"
+  exit 1
+fi
 
 # give it a few seconds and catch immediate startup crashes
 sleep 20
-if docker exec protforge-bindcraft sh -c "grep -q 'Traceback (most recent call last)' '$C_OUT/run.log' 2>/dev/null"; then
+if docker exec "$name" sh -c "grep -q 'Traceback (most recent call last)' '$C_OUT/run.log' 2>/dev/null"; then
   echo "PROTFORGE_OUTPUT_DIR: $OUT_HOST"
   echo "PROTFORGE_LOG: $OUT_HOST/run.log"
-  protforge_fail "bindcraft crashed at startup (see run.log). In PyRosetta-free mode this usually means the stub guard in bindcraft.py is missing (pr.init called unconditionally)."
+  protforge_fail "bindcraft crashed at startup (see run.log)"
   exit 1
 fi
 

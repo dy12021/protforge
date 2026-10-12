@@ -18,15 +18,32 @@ export MSYS2_ARG_CONV_EXCL='*'
 # profile or scheduled task keeps pointing at the same weights and outputs.
 # With neither variable set, prefer E:/protforge, but fall back to E:/oih when
 # that is where the deployment actually lives.
-: "${PROTFORGE_HOME:=${OIH_HOME:-}}"
-if [ -z "$PROTFORGE_HOME" ]; then
-  if   [ -d "E:/protforge" ]; then PROTORGE_HOME="E:/protforge"
-  elif [ -d "E:/oih" ];     then PROTORGE_HOME="E:/oih"
-  else                           PROTORGE_HOME="E:/protforge"
-  fi
-fi
-: "${PROTFORGE_DATA:=${OIH_DATA:-$PROTFORGE_HOME/data}}"
-: "${PROTFORGE_MODELS:=${OIH_MODELS:-$PROTFORGE_HOME/models}}"
+# Discovery uses the same printf + command-substitution shape as
+# protforge_host_python / protforge_compose_file below. A conditional
+# assignment inside if/elif branches did not reliably survive parameter
+# expansion on every MSYS/Git Bash build: PROTORGE_HOME ended up empty, so
+# PROTORGE_DATA collapsed to "/data" and every runner died on
+# `mkdir: cannot create directory '/data'` before touching Docker.
+protforge_detect_home() {
+  local c
+  for c in "E:/protforge" "E:/oih"; do
+    if [ -d "$c" ]; then printf '%s\n' "$c"; return 0; fi
+  done
+  printf '%s\n' "E:/protforge"
+}
+
+# IMPORTANT: these three assignments must stay at top level, never inside an
+# `if` body. On the Git Bash build shipped with this machine, assigning to
+# PROTORGE_HOME from within a conditional block silently fails to persist
+# (verified with an 8-case bisect: unconditional assignment and eval-wrapped
+# assignment both work, if-body / printf -v / declare -g / read all do not).
+# The symptom was PROTORGE_HOME empty -> PROTORGE_DATA "/data" -> every
+# runner died on `mkdir: cannot create directory '/data'`.
+# Unconditional `${VAR:-...}` keeps the OIH_* legacy fallback intact.
+PROTFORGE_HOME="${PROTFORGE_HOME:-${OIH_HOME:-$(protforge_detect_home)}}"
+PROTFORGE_DATA="${PROTFORGE_DATA:-${OIH_DATA:-$PROTFORGE_HOME/data}}"
+PROTFORGE_MODELS="${PROTFORGE_MODELS:-${OIH_MODELS:-$PROTFORGE_HOME/models}}"
+export PROTORGE_HOME PROTORGE_DATA PROTORGE_MODELS
 
 # In-container path that $PROTFORGE_DATA is mounted at. This is a contract
 # with your compose file's volume mapping, not a local path: if your compose

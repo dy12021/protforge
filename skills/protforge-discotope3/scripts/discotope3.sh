@@ -27,6 +27,7 @@ C_OUT="$(protforge_container_path "$OUT_HOST")"
 C_PDB="$(protforge_container_path "$PDB")"
 
 protforge_ensure_container protforge-discotope3 || { protforge_fail "container protforge-discotope3 unavailable"; exit 1; }
+name="$(protforge_container protforge-discotope3)"
 
 EXTRA=()
 if [ "$MULTICHAIN" = "true" ]; then
@@ -34,7 +35,7 @@ if [ "$MULTICHAIN" = "true" ]; then
 fi
 
 # main.py must run with /app/discotope3/discotope3 as working directory.
-docker exec -w /app/discotope3/discotope3 protforge-discotope3 python3 -u main.py \
+docker exec -w /app/discotope3/discotope3 "$name" python3 -u main.py \
   --pdb_or_zip_file "$C_PDB" \
   --out_dir "$C_OUT" \
   --models_dir /app/discotope3/models \
