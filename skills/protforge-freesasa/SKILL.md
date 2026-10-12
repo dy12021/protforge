@@ -4,12 +4,12 @@ description: Solvent accessible surface area (SASA) analysis and ADC conjugation
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # freesasa — SASA & ADC conjugation site candidates
 
-Runs FreeSASA on the **host** Python environment (`E:\protforge\venvs\protforge\python.exe`)
+Runs FreeSASA on the **host** Python environment (`<data-root>\venvs\protforge\python.exe`)
 — no Docker involved. Input PDB comes from `$PROTFORGE_HOME/data/inputs`; output
 lands in `$PROTFORGE_HOME/data/outputs/<job_name>_freesasa/`.
 

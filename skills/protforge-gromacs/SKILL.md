@@ -4,7 +4,7 @@ description: Protein molecular dynamics setup and short simulation with GROMACS 
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # gromacs — protein MD (single protein in water)

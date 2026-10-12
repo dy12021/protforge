@@ -14,10 +14,19 @@ export MSYS2_ARG_CONV_EXCL='*'
 # Paths
 # ---------------------------------------------------------------------------
 
+# Deployment-local overrides live in scripts/local.env. That file is
+# gitignored and never published, so a site can point the probe list at its own
+# data root without the repository carrying that path. Copy
+# scripts/local.env.example to scripts/local.env after cloning.
+_pf_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$_pf_lib_dir/local.env" ]; then
+  # shellcheck source=/dev/null
+  . "$_pf_lib_dir/local.env"
+fi
+
 # Data root. Legacy $OIH_HOME still wins if it is set, so an existing shell
 # profile or scheduled task keeps pointing at the same weights and outputs.
-# With neither variable set, prefer E:/protforge, but fall back to E:/oih when
-# that is where the deployment actually lives.
+# With neither set, probe $PROTFORGE_CANDIDATES (site-local, see local.env).
 # Discovery uses the same printf + command-substitution shape as
 # protforge_host_python / protforge_compose_file below. A conditional
 # assignment inside if/elif branches did not reliably survive parameter
@@ -26,10 +35,10 @@ export MSYS2_ARG_CONV_EXCL='*'
 # `mkdir: cannot create directory '/data'` before touching Docker.
 protforge_detect_home() {
   local c
-  for c in "E:/protforge" "E:/oih"; do
+  for c in ${PROTFORGE_CANDIDATES:-E:/protforge}; do
     if [ -d "$c" ]; then printf '%s\n' "$c"; return 0; fi
   done
-  printf '%s\n' "E:/protforge"
+  printf '%s\n' "${PROTFORGE_DEFAULT_ROOT:-E:/protforge}"
 }
 
 # IMPORTANT: these three assignments must stay at top level, never inside an
@@ -40,10 +49,13 @@ protforge_detect_home() {
 # The symptom was PROTORGE_HOME empty -> PROTORGE_DATA "/data" -> every
 # runner died on `mkdir: cannot create directory '/data'`.
 # Unconditional `${VAR:-...}` keeps the OIH_* legacy fallback intact.
+# NOT exported on purpose. `source` already runs in the caller's shell, so the
+# three roots are visible to everything that follows. Exporting them is
+# actively harmful on the Git Bash build used for testing: `export
+# PROTORGE_HOME=...` makes the variable read back empty.
 PROTFORGE_HOME="${PROTFORGE_HOME:-${OIH_HOME:-$(protforge_detect_home)}}"
 PROTFORGE_DATA="${PROTFORGE_DATA:-${OIH_DATA:-$PROTFORGE_HOME/data}}"
 PROTFORGE_MODELS="${PROTFORGE_MODELS:-${OIH_MODELS:-$PROTFORGE_HOME/models}}"
-export PROTORGE_HOME PROTORGE_DATA PROTORGE_MODELS
 
 # In-container path that $PROTFORGE_DATA is mounted at. This is a contract
 # with your compose file's volume mapping, not a local path: if your compose
@@ -113,14 +125,25 @@ protforge_container() {
   printf '%s\n' "$want"
 }
 
+# Upper-case a leading Windows drive letter so paths compare regardless of
+# how they were typed. Previously this only handled `e:`, which silently broke
+# any deployment whose data root lives on another drive.
+protforge_norm_drive() {
+  local s="$1"
+  case "$s" in
+    [a-z]:/*|[a-z]:) printf '%s\n' "${s^}" ;;
+    *)              printf '%s\n' "$s" ;;
+  esac
+}
+
 # Translate a host (Windows/POSIX) path under $PROTFORGE_DATA to the
 # in-container path.
 protforge_container_path() {
   local p="$1"
   p="${p//\\//}"                       # backslashes -> slashes
   local d="${PROTFORGE_DATA//\\//}"
-  d="${d/#e:/E:}"                      # normalize drive letter case
-  p="${p/#e:/E:}"
+  d="$(protforge_norm_drive "$d")"       # normalize drive letter case
+  p="$(protforge_norm_drive "$p")"
   if [[ "$p" == "$d/"* ]]; then
     echo "${PROTFORGE_MOUNT%/}/${p#$d/}"
   else

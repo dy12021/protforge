@@ -11,7 +11,7 @@ commercial use OK.
 | Thing | Path (verified 2026-10-11) |
 |---|---|
 | CLI | `/opendde_venv/bin/opendde` (package 1.2.0, Python 3.11, cu126) |
-| weights + CCD assets | `/mnt/e/oih/models/opendde` → `export OPENDDE_ROOT_DIR=...` |
+| weights + CCD assets | `$OPENDDE_ROOT_DIR` → `export OPENDDE_ROOT_DIR=...` |
 | checkpoint manifest | `/opendde_venv/lib/python3.11/site-packages/opendde/config/model_manifest.json` |
 
 Earlier revisions of this skill pointed at `/esmfold2/venv` and
@@ -63,10 +63,10 @@ what `search_and_build_msa` does when its paired ColabFold call fails.
 ## Command
 
 ```bash
-export OPENDDE_ROOT_DIR=/mnt/e/oih/models/opendde
+export OPENDDE_ROOT_DIR=$OPENDDE_ROOT_DIR
 export PATH=/opendde_venv/bin:$PATH
 opendde pred -i job.json -o /opendde_msa_test/out \
-  --load_checkpoint_path /mnt/e/oih/models/opendde/opendde_abag.pt \
+  --load_checkpoint_path $OPENDDE_ROOT_DIR/opendde_abag.pt \
   --use_msa true --use_template false --sample 1 --step 200 --cycle 10 --device cuda
 ```
 
@@ -92,7 +92,7 @@ Generate and inject that path in one step (searches `/db`, validates, rewrites
 the job):
 
 ```bash
-/alphafold3_venv/bin/python /mnt/e/oih/oih-upgrade/02-newtools/wire_opendde_msa.py \
+/alphafold3_venv/bin/python <tools-dir>/wire_opendde_msa.py \
   --job job.json --out job_msa.json --dbs uniref90,bfd
 ```
 

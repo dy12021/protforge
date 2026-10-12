@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 # proteinmpnn runner: design sequences for a protein backbone.
 set -euo pipefail
-source "$(dirname "$0")/../../../scripts/_common.sh"
+# Locate the shared helper. A plugin install resolves ../../../scripts/, but
+# a standalone skills install (~/.minimax/skills/<skill>/scripts) has no such
+# parent, so fall back to the installed plugin tree before giving up.
+__pf_lib=""
+for __pf_c in "$(dirname "$0")/../../../scripts/_common.sh" \
+              "$HOME/.minimax/plugins/protforge/scripts/_common.sh"; do
+  if [ -f "$__pf_c" ]; then __pf_lib="$__pf_c"; break; fi
+done
+if [ -z "$__pf_lib" ]; then
+  echo "PROTFORGE_STATUS: FAIL cannot locate scripts/_common.sh" >&2
+  exit 1
+fi
+source "$__pf_lib"
+unset __pf_lib __pf_c
 
 # args: pdb_path [chains] [num_sequences] [sampling_temp] [job_name]
 PDB="${1:?usage: proteinmpnn.sh <pdb_path> [chains] [num_sequences] [sampling_temp] [job_name]}"
@@ -12,7 +25,7 @@ JOB="${5:-}"
 
 PDB="${PDB//\\//}"
 if [[ "$PDB" =~ ^/([A-Za-z])/(.*)$ ]]; then
-  PDB="${BASH_REMATCH[1]^}:/${BASH_REMATCH[2]}"   # /e/protforge/... -> E:/protforge/...
+  PDB="${BASH_REMATCH[1]^}:/${BASH_REMATCH[2]}"   # /e/protforge/... -> <data-root>/...
 fi
 if [[ ! "$PDB" =~ ^[A-Za-z]:/ ]]; then
   PDB="$PROTFORGE_DATA/inputs/$PDB"

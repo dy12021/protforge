@@ -3,7 +3,20 @@
 # Design takes hours — this script validates inputs, writes target settings,
 # and LAUNCHES the design detached in the protforge-bindcraft container.
 set -euo pipefail
-source "$(dirname "$0")/../../../scripts/_common.sh"
+# Locate the shared helper. A plugin install resolves ../../../scripts/, but
+# a standalone skills install (~/.minimax/skills/<skill>/scripts) has no such
+# parent, so fall back to the installed plugin tree before giving up.
+__pf_lib=""
+for __pf_c in "$(dirname "$0")/../../../scripts/_common.sh" \
+              "$HOME/.minimax/plugins/protforge/scripts/_common.sh"; do
+  if [ -f "$__pf_c" ]; then __pf_lib="$__pf_c"; break; fi
+done
+if [ -z "$__pf_lib" ]; then
+  echo "PROTFORGE_STATUS: FAIL cannot locate scripts/_common.sh" >&2
+  exit 1
+fi
+source "$__pf_lib"
+unset __pf_lib __pf_c
 
 # args: target_pdb target_chains hotspots job_name [num_final_designs]
 TARGET_PDB="${1:?usage: bindcraft.sh <target_pdb> <target_chains> <hotspots> <job_name> [num_final_designs]}"
@@ -14,7 +27,7 @@ NUM_FINAL="${5:-5}"
 
 TARGET_PDB="${TARGET_PDB//\\//}"
 if [[ "$TARGET_PDB" =~ ^/([A-Za-z])/(.*)$ ]]; then
-  TARGET_PDB="${BASH_REMATCH[1]^}:/${BASH_REMATCH[2]}"   # /e/protforge/... -> E:/protforge/...
+  TARGET_PDB="${BASH_REMATCH[1]^}:/${BASH_REMATCH[2]}"   # /e/protforge/... -> <data-root>/...
 fi
 if [[ ! "$TARGET_PDB" =~ ^[A-Za-z]:/ ]]; then
   TARGET_PDB="$PROTFORGE_DATA/inputs/$TARGET_PDB"

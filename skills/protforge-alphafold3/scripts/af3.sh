@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 # AlphaFold 3 runner: single-chain protein, one seed.
 set -euo pipefail
-source "$(dirname "$0")/../../../scripts/_common.sh"
+# Locate the shared helper. A plugin install resolves ../../../scripts/, but
+# a standalone skills install (~/.minimax/skills/<skill>/scripts) has no such
+# parent, so fall back to the installed plugin tree before giving up.
+__pf_lib=""
+for __pf_c in "$(dirname "$0")/../../../scripts/_common.sh" \
+              "$HOME/.minimax/plugins/protforge/scripts/_common.sh"; do
+  if [ -f "$__pf_c" ]; then __pf_lib="$__pf_c"; break; fi
+done
+if [ -z "$__pf_lib" ]; then
+  echo "PROTFORGE_STATUS: FAIL cannot locate scripts/_common.sh" >&2
+  exit 1
+fi
+source "$__pf_lib"
+unset __pf_lib __pf_c
 
 JOB="${1:?usage: af3.sh <job_name> <protein_sequence> [n_cpu]}"
 SEQ="${2:?missing protein sequence}"

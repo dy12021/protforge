@@ -4,7 +4,7 @@ description: Fast GPU molecular docking with Vina-GPU (Docker container protforg
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # vina-gpu — fast GPU docking

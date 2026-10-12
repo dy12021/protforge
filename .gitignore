@@ -16,6 +16,10 @@ dist/
 build/
 *.log
 
+# Deployment-local config — holds this machine's real data/model roots and
+# must never be committed or published. See scripts/local.env.example.
+scripts/local.env
+
 # Local model / data — never commit weights or job outputs
 models/
 data/

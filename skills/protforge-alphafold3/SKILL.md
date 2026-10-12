@@ -23,7 +23,7 @@ superseded_by: [protforge-esmfold2, protforge-esmfold2-fast, protforge-opendde]
 > 3. **This container was mis-degraded.** `docker-compose.windows.yml` mounts
 >    `D:/af3db_rw` at `/data/alphafold3_db`, but that directory is **0 GB
 >    (empty)**. The real 398 GB database lives at
->    `E:/protforge/models/af3_db` and in the `AF3Native` WSL distro at `/db`.
+>    `<data-root>/models/af3_db` and in the `AF3Native` WSL distro at `/db`.
 >    Consequence: AF3 here has always been forced into
 >    `--norun_data_pipeline` single-sequence mode — the MSA path was never
 >    actually active, so published AF3 numbers were never reproduced here.
@@ -41,7 +41,7 @@ superseded_by: [protforge-esmfold2, protforge-esmfold2-fast, protforge-opendde]
 > cite AF3 directly).
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # AlphaFold 3 — structure prediction (DEPRECATED; see banner above)

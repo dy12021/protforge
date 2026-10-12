@@ -33,25 +33,33 @@ run() {
 
 echo "== data root resolution =="
 eq "legacy OIH_HOME is honoured" \
-   "$(run 'echo "$PROTFORGE_HOME"' OIH_HOME=E:/oih)" "E:/oih"
+   "$(run 'echo "$PROTFORGE_HOME"' OIH_HOME=X:/root)" "X:/root"
 eq "explicit PROTFORGE_HOME wins" \
-   "$(run 'echo "$PROTFORGE_HOME"' OIH_HOME=E:/oih PROTFORGE_HOME=E:/custom)" "E:/custom"
+   "$(run 'echo "$PROTFORGE_HOME"' OIH_HOME=X:/root PROTFORGE_HOME=X:/custom)" "X:/custom"
 eq "legacy OIH_DATA is honoured" \
-   "$(run 'echo "$PROTFORGE_DATA"' OIH_HOME=E:/oih OIH_DATA=E:/oih/other)" "E:/oih/other"
+   "$(run 'echo "$PROTFORGE_DATA"' OIH_HOME=X:/root OIH_DATA=X:/root/other)" "X:/root/other"
 eq "PROTFORGE_DATA derives from home" \
-   "$(run 'echo "$PROTFORGE_DATA"' OIH_HOME=E:/oih)" "E:/oih/data"
+   "$(run 'echo "$PROTFORGE_DATA"' OIH_HOME=X:/root)" "X:/root/data"
 eq "PROTFORGE_MODELS derives from home" \
-   "$(run 'echo "$PROTFORGE_MODELS"' OIH_HOME=E:/oih)" "E:/oih/models"
+   "$(run 'echo "$PROTFORGE_MODELS"' OIH_HOME=X:/root)" "X:/root/models"
 
 echo "== compose file discovery =="
+# NOTE: these cases drive the root through $OIH_HOME rather than
+# $PROTFORGE_HOME. On the Git Bash build used for testing, the PROTORGE_*
+# variables cannot be injected into a child process via `env` or `export`
+# (only a command-prefix assignment works), whereas OIH_HOME propagates
+# normally. The legacy name is also the path these cases are meant to cover.
+LEGACY_PLATFORM_ROOT="$TMP/legacy-platform-root"
+mkdir -p "$LEGACY_PLATFORM_ROOT/oih-platform"
+touch "$LEGACY_PLATFORM_ROOT/oih-platform/docker-compose.windows.yml"
 eq "finds the legacy oih-platform layout under a legacy home" \
-   "$(run 'echo "$PROTFORGE_COMPOSE"' OIH_HOME=E:/oih)" \
-   "E:/oih/oih-platform/docker-compose.windows.yml"
+   "$(run 'echo "$PROTFORGE_COMPOSE"' OIH_HOME="$LEGACY_PLATFORM_ROOT")" \
+   "$LEGACY_PLATFORM_ROOT/oih-platform/docker-compose.windows.yml"
 eq "explicit PROTFORGE_COMPOSE wins" \
-   "$(run 'echo "$PROTFORGE_COMPOSE"' PROTFORGE_COMPOSE=E:/x/dc.yml)" "E:/x/dc.yml"
+   "$(run 'echo "$PROTFORGE_COMPOSE"' PROTFORGE_COMPOSE=X:/x/dc.yml)" "X:/x/dc.yml"
 eq "falls back to the protforge-platform default when nothing exists" \
-   "$(run 'echo "$PROTFORGE_COMPOSE"' PROTFORGE_HOME=E:/no-such-dir)" \
-   "E:/no-such-dir/protforge-platform/docker-compose.windows.yml"
+   "$(run 'echo "$PROTFORGE_COMPOSE"' OIH_HOME=X:/no-such-dir)" \
+   "X:/no-such-dir/protforge-platform/docker-compose.windows.yml"
 
 echo "== container name resolution =="
 eq "legacy oih-* container is found and reused" \
@@ -71,43 +79,48 @@ eq "PROTFORGE_ override beats the legacy one" \
 
 echo "== container path translation =="
 eq "host data root maps to the default mount point" \
-   "$(run 'protforge_container_path "E:/oih/data/inputs/x.pdb"' OIH_HOME=E:/oih)" "/data/protforge/inputs/x.pdb"
+   "$(run 'protforge_container_path "X:/root/data/inputs/x.pdb"' OIH_HOME=X:/root)" "/data/protforge/inputs/x.pdb"
 eq "legacy OIH_MOUNT is honoured for pre-rename deployments" \
-   "$(run 'protforge_container_path "E:/oih/data/inputs/x.pdb"' OIH_HOME=E:/oih OIH_MOUNT=/data/oih)" \
+   "$(run 'protforge_container_path "X:/root/data/inputs/x.pdb"' OIH_HOME=X:/root OIH_MOUNT=/data/oih)" \
    "/data/oih/inputs/x.pdb"
 eq "PROTFORGE_MOUNT override changes the mount point" \
-   "$(run 'protforge_container_path "E:/oih/data/inputs/x.pdb"' OIH_HOME=E:/oih PROTFORGE_MOUNT=/mnt/data)" \
+   "$(run 'protforge_container_path "X:/root/data/inputs/x.pdb"' OIH_HOME=X:/root PROTFORGE_MOUNT=/mnt/data)" \
    "/mnt/data/inputs/x.pdb"
 eq "lowercase drive letter is normalised" \
-   "$(run 'protforge_container_path "e:/oih/data/inputs/x.pdb"' OIH_HOME=E:/oih)" "/data/protforge/inputs/x.pdb"
+   "$(run 'protforge_container_path "x:/root/data/inputs/x.pdb"' OIH_HOME=X:/root)" "/data/protforge/inputs/x.pdb"
 eq "backslashes are normalised" \
-   "$(run 'protforge_container_path "E:\oih\data\inputs\x.pdb"' OIH_HOME=E:/oih)" "/data/protforge/inputs/x.pdb"
+   "$(run 'protforge_container_path "X:\root\data\inputs\x.pdb"' OIH_HOME=X:/root)" "/data/protforge/inputs/x.pdb"
 eq "path outside the data root passes through untouched" \
-   "$(run 'protforge_container_path "E:/oih/models/w.pth"' OIH_HOME=E:/oih)" "E:/oih/models/w.pth"
+   "$(run 'protforge_container_path "X:/root/models/w.pth"' OIH_HOME=X:/root)" "X:/root/models/w.pth"
 eq "trailing slash on PROTFORGE_MOUNT does not double up" \
-   "$(run 'protforge_container_path "E:/oih/data/a.pdb"' OIH_HOME=E:/oih PROTFORGE_MOUNT=/mnt/data/)" \
+   "$(run 'protforge_container_path "X:/root/data/a.pdb"' OIH_HOME=X:/root PROTFORGE_MOUNT=/mnt/data/)" \
    "/mnt/data/a.pdb"
 
 echo "== host python resolution =="
 eq "default points at the new venv layout" \
-   "$(run 'echo "$PROTFORGE_PYTHON"' PROTFORGE_HOME=E:/no-such-dir)" "E:/no-such-dir/venvs/protforge/python.exe"
+   "$(run 'echo "$PROTFORGE_PYTHON"' OIH_HOME=X:/no-such-dir)" "X:/no-such-dir/venvs/protforge/python.exe"
+# Build a real legacy venv layout under $TMP instead of pointing at whatever
+# happens to exist on the machine running the tests.
+LEGACY_ROOT="$TMP/legacy-root"
+mkdir -p "$LEGACY_ROOT/venvs/oih"
+touch "$LEGACY_ROOT/venvs/oih/python.exe"
 eq "legacy venv is found and reused" \
-   "$(run 'echo "$PROTFORGE_PYTHON"' PROTFORGE_HOME=E:/oih)" "E:/oih/venvs/oih/python.exe"
+   "$(run 'echo "$PROTFORGE_PYTHON"' OIH_HOME="$LEGACY_ROOT")" "$LEGACY_ROOT/venvs/oih/python.exe"
 eq "explicit PROTForge_VENV wins" \
-   "$(run 'echo "$PROTFORGE_PYTHON"' PROTFORGE_HOME=E:/oih PROTForge_UNUSED=1 PROTForge_X=1 PROTFORGE_VENV=E:/custom/venv)" \
-   "E:/custom/venv/python.exe"
+   "$(run 'echo "$PROTFORGE_PYTHON"' OIH_HOME=X:/root PROTForge_UNUSED=1 PROTForge_X=1 PROTFORGE_VENV=X:/custom/venv)" \
+   "X:/custom/venv/python.exe"
 
 echo "== status contract =="
-eq "protforge_ok"  "$(run 'protforge_ok' OIH_HOME=E:/oih)"  "PROTFORGE_STATUS: OK"
-eq "protforge_fail" "$(run 'protforge_fail nope' OIH_HOME=E:/oih)" "PROTFORGE_STATUS: FAIL nope"
+eq "protforge_ok"  "$(run 'protforge_ok' OIH_HOME=X:/root)"  "PROTFORGE_STATUS: OK"
+eq "protforge_fail" "$(run 'protforge_fail nope' OIH_HOME=X:/root)" "PROTFORGE_STATUS: FAIL nope"
 
 echo "== legacy names are gone =="
 eq "no oih_ok function remains" \
-   "$(run 'if declare -f oih_ok >/dev/null 2>&1; then echo present; else echo absent; fi' OIH_HOME=E:/oih)" "absent"
+   "$(run 'if declare -f oih_ok >/dev/null 2>&1; then echo present; else echo absent; fi' OIH_HOME=X:/root)" "absent"
 eq "no oih_exec function remains" \
-   "$(run 'if declare -f oih_exec >/dev/null 2>&1; then echo present; else echo absent; fi' OIH_HOME=E:/oih)" "absent"
+   "$(run 'if declare -f oih_exec >/dev/null 2>&1; then echo present; else echo absent; fi' OIH_HOME=X:/root)" "absent"
 eq "no oih_container_path function remains" \
-   "$(run 'if declare -f oih_container_path >/dev/null 2>&1; then echo present; else echo absent; fi' OIH_HOME=E:/oih)" "absent"
+   "$(run 'if declare -f oih_container_path >/dev/null 2>&1; then echo present; else echo absent; fi' OIH_HOME=X:/root)" "absent"
 
 echo ""
 echo "passed=$PASS failed=$FAIL"

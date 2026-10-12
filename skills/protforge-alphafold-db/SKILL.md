@@ -4,7 +4,7 @@ description: Query the public AlphaFold Protein Structure Database (Google DeepM
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the command below.
 
 # AlphaFold DB — query & download public predicted structures
@@ -64,12 +64,12 @@ entry page `https://alphafold.ebi.ac.uk/entry/<ACC>`.
 ## Windows (win32) platform notes
 
 - `python` (Anaconda base) is on PATH; the script is stdlib-only, no pip installs.
-- PowerShell equivalent: `python "C:/Users/dy120/.minimax/plugins/protforge/skills/protforge-alphafold-db/scripts/afdb.py" P69905`
+- PowerShell equivalent: `python "${PLUGIN_DIR}/skills/protforge-alphafold-db/scripts/afdb.py" P69905`
 - Also works under Git Bash / WSL with the same `python` command.
 
 ## Examples
 
 Input: "帮我下载人血红蛋白 α 链的 AlphaFold 结构（P69905）并看看可信度"
-Run: `python "${PLUGIN_DIR}/skills/protforge-alphafold-db/scripts/afdb.py" P69905 --out E:/protforge/data/outputs/P69905_afdb`
+Run: `python "${PLUGIN_DIR}/skills/protforge-alphafold-db/scripts/afdb.py" P69905 --out <data-root>/data/outputs/P69905_afdb`
 Output: mean pLDDT 98.06, 99.3% residues very-high confidence (model v6); CIF/PDB/confidence/PAE
 saved under the output dir; entry page https://alphafold.ebi.ac.uk/entry/P69905.

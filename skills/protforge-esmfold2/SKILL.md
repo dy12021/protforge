@@ -53,9 +53,9 @@ Protein-protein: ESMFold2+MSA 76% vs AF3 73%.
 |---|---|---|---|
 | ESMC-6B | `/esmfold2/models/ESMC-6B` | D: NVMe (ext4) | 23.66 GB, 6 shards |
 | ESMFold2 (full) | `/esmfold2/models/ESMFold2` | D: NVMe (ext4) | 24.90 GB, 6 shards, **proven loading** |
-| **ESMFold2-Fast** | **`/mnt/e/protforge/models/ESMFold2-Fast`** | **E: mechanical** | moved off D:; D: had only 16 GB free and the MSA index still needs 43 GB there |
+| **ESMFold2-Fast** | **`<models-root>/ESMFold2-Fast`** | **E: mechanical** | moved off D:; D: had only 16 GB free and the MSA index still needs 43 GB there |
 | venv | `/esmfold2/venv` | D: NVMe | keeps torch import ~2 s instead of ~25 s |
-| af3_db | `/mnt/e/protforge/models/af3_db` | E: mechanical | bfd is decompressed; mgy/nt_rna/uniprot/uniref90 are `.zst` only |
+| af3_db | `<models-root>/af3_db` | E: mechanical | bfd is decompressed; mgy/nt_rna/uniprot/uniref90 are `.zst` only |
 
 `fold.py` prefers a local weights dir over any hub lookup. Pass an explicit path
 when you want a specific variant.
@@ -274,7 +274,7 @@ Never inline a Python command through `wsl.exe` — PowerShell mangles the quote
 Copy the runner into the distro once, then invoke it by path:
 
 ```powershell
-wsl.exe -d AF3Native -- bash -c "mkdir -p /esmfold2/bin && cp '/mnt/c/Users/dy120/.minimax/plugins/protforge/skills/protforge-esmfold2/scripts/fold.py' /esmfold2/bin/fold.py"
+wsl.exe -d AF3Native -- bash -c "mkdir -p /esmfold2/bin && cp '<windows-home>/.minimax/plugins/protforge/skills/protforge-esmfold2/scripts/fold.py' /esmfold2/bin/fold.py"
 wsl.exe -d AF3Native -- bash /esmfold2/bin/fold.py /esmfold2/jobs/<job>.json
 ```
 
@@ -356,8 +356,8 @@ actually is*, which is not where the naming suggests:
   outcome, not a bug.
 
 ```powershell
-wsl.exe -d AF3Native -- bash -c "cp '/mnt/c/Users/dy120/.minimax/plugins/protforge/skills/protforge-esmfold2/scripts/design_scFv.py' /esmfold2/bin/"
-wsl.exe -d AF3Native -- bash /mnt/e/protforge/protforge-upgrade/02-newtools/check_design_job.py.sh /esmfold2/jobs/<design>.json
+wsl.exe -d AF3Native -- bash -c "cp '<windows-home>/.minimax/plugins/protforge/skills/protforge-esmfold2/scripts/design_scFv.py' /esmfold2/bin/"
+wsl.exe -d AF3Native -- bash <tools-dir>/check_design_job.py.sh /esmfold2/jobs/<design>.json
 wsl.exe -d AF3Native -- bash /esmfold2/bin/design_scFv.py /esmfold2/jobs/<design>.json
 ```
 
@@ -449,7 +449,7 @@ python -c "
 from modelscope import snapshot_download
 snapshot_download('biohub/ESMC-6B',       local_dir='/esmfold2/models/ESMC-6B')
 snapshot_download('biohub/ESMFold2',      local_dir='/esmfold2/models/ESMFold2')
-snapshot_download('biohub/ESMFold2-Fast', local_dir='/mnt/e/protforge/models/ESMFold2-Fast')
+snapshot_download('biohub/ESMFold2-Fast', local_dir='<models-root>/ESMFold2-Fast')
 "
 ```
 
@@ -475,7 +475,7 @@ files = HubApi().get_model_files('biohub/ESMFold2-Fast', revision='master')
 # *.incomplete remains and no undeclared *.safetensors exists
 ```
 
-`verify_fast.sh` in `/mnt/e/protforge/protforge-upgrade/02-newtools/` does exactly this.
+`verify_fast.sh` in `<tools-dir>/` does exactly this.
 
 ### Byte count alone is still not proof for a resumed file
 
@@ -669,9 +669,9 @@ Rank composites by **ipTM**, monomers by mean **pLDDT**. Report which variant ra
   silently becomes a pipe. Put anything non-trivial in a `.sh` file.
 - Write `.sh` files with a tool that emits LF and no BOM. PowerShell `Set-Content`
   produces CRLF + BOM and bash then reports `$'\r': command not found`.
-- Paths: host `E:\protforge\...` ↔ WSL `/mnt/e/protforge/...`; WSL-internal paths like
+- Paths: host `<data-root>\...` ↔ WSL `<wsl-data-root>/...`; WSL-internal paths like
   `/esmfold2/...` have no host equivalent.
 - Check progress with
-  `wsl.exe -d AF3Native -- bash /mnt/e/protforge/protforge-upgrade/02-newtools/board.sh`
+  `wsl.exe -d AF3Native -- bash <tools-dir>/board.sh`
 - Do not edit a shell script while bash is executing it — bash reads by byte
   offset, so an in-place edit corrupts the running job.

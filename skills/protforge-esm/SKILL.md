@@ -4,7 +4,7 @@ description: ESM-2 protein language model embeddings and pseudo-perplexity scori
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # esm — ESM-2 embeddings / pseudo-perplexity

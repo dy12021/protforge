@@ -4,7 +4,7 @@ description: ADMET property prediction with chemprop (Docker container protforge
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # chemprop — ADMET property prediction
@@ -37,9 +37,9 @@ interpretation (e.g. ESOL = log solubility in mol/L; higher = more soluble).
 
 ## Notes
 
-- Model library lives at `E:\protforge\models\admet\models\<endpoint>\`; only ESOL
+- Model library lives at `<models-root>\admet\models\<endpoint>\`; only ESOL
   is trained so far. Train new endpoints in-container per
-  `E:\protforge\models\admet\README.md` (MoleculeNet endpoints: FreeSolv,
+  `<models-root>\admet\README.md` (MoleculeNet endpoints: FreeSolv,
   Lipophilicity, BACE, BBBP, ClinTox, MUV, SIDER, Tox21, ToxCast, PCBA, HIV).
 - Prediction runs on CPU by design (`--accelerator cpu`) and is fast.
 - Custom models trained elsewhere must be chemprop v2 checkpoints and be placed

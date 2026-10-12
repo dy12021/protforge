@@ -92,7 +92,7 @@ bash "${PLUGIN_DIR}/skills/protforge-rfdiffusion/scripts/rfdiffusion.sh" \
 
 ## Failure handling
 
-- `FAIL input not found: E:/protforge/data/inputs/x` — put the file in `inputs/` or
+- `FAIL input not found: <data-root>/data/inputs/x` — put the file in `inputs/` or
   pass an absolute host path.
 - `CUDA out of memory` — lower `inference.batch_size_middle` or run on the
   other GPU.

@@ -2,7 +2,20 @@
 # esm runner: ESM-2 embeddings / pseudo-perplexity for protein sequences.
 # Model weights are pre-cached in the container (no network needed).
 set -euo pipefail
-source "$(dirname "$0")/../../../scripts/_common.sh"
+# Locate the shared helper. A plugin install resolves ../../../scripts/, but
+# a standalone skills install (~/.minimax/skills/<skill>/scripts) has no such
+# parent, so fall back to the installed plugin tree before giving up.
+__pf_lib=""
+for __pf_c in "$(dirname "$0")/../../../scripts/_common.sh" \
+              "$HOME/.minimax/plugins/protforge/scripts/_common.sh"; do
+  if [ -f "$__pf_c" ]; then __pf_lib="$__pf_c"; break; fi
+done
+if [ -z "$__pf_lib" ]; then
+  echo "PROTFORGE_STATUS: FAIL cannot locate scripts/_common.sh" >&2
+  exit 1
+fi
+source "$__pf_lib"
+unset __pf_lib __pf_c
 
 JOB="${1:?usage: protforge-esm.sh <job_name> <seq1,seq2,...> [embed|score]}"
 SEQS="${2:?missing sequences (comma-separated)}"

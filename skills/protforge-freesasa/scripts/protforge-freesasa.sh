@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
 # freesasa runner: per-residue SASA + ADC conjugation site candidates.
-# Runs on the HOST python (no docker): E:\protforge\venvs\protforge\python.exe
+# Runs on the HOST python (no docker): <data-root>\venvs\protforge\python.exe
 set -euo pipefail
-source "$(dirname "$0")/../../../scripts/_common.sh"
+# Locate the shared helper. A plugin install resolves ../../../scripts/, but
+# a standalone skills install (~/.minimax/skills/<skill>/scripts) has no such
+# parent, so fall back to the installed plugin tree before giving up.
+__pf_lib=""
+for __pf_c in "$(dirname "$0")/../../../scripts/_common.sh" \
+              "$HOME/.minimax/plugins/protforge/scripts/_common.sh"; do
+  if [ -f "$__pf_c" ]; then __pf_lib="$__pf_c"; break; fi
+done
+if [ -z "$__pf_lib" ]; then
+  echo "PROTFORGE_STATUS: FAIL cannot locate scripts/_common.sh" >&2
+  exit 1
+fi
+source "$__pf_lib"
+unset __pf_lib __pf_c
 
 PDB="${1:?usage: protforge-freesasa.sh <pdb_path> <job_name>}"
 JOB="${2:-freesasa}"

@@ -4,14 +4,14 @@ description: Deep-learning molecular docking with gnina (Docker container protfo
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation). Resolve it from the plugin
+> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # gnina — deep learning docking
 
 Runs `gnina` in the `protforge-gnina` container. The receptor PDB comes from
 `$PROTFORGE_HOME/data/inputs`; the ligand is built on the host with RDKit
-(`E:\protforge\venvs\protforge\python.exe`) as a 3D SDF — gnina reads SDF directly, no
+(`<data-root>\venvs\protforge\python.exe`) as a 3D SDF — gnina reads SDF directly, no
 pdbqt conversion needed. Output lands in
 `$PROTFORGE_HOME/data/outputs/<job_name>_gnina/`.
 

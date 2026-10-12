@@ -63,7 +63,7 @@ them causes crashes, so never install one runtime's packages into another.
 
 ## Conventions
 
-- Data root: `$PROTFORGE_HOME` (default `E:/protforge`). Inputs go in
+- Data root: `$PROTFORGE_HOME` (default `<data-root>`). Inputs go in
   `$PROTFORGE_DATA/inputs/`, outputs land in `$PROTFORGE_DATA/outputs/<job>_<tool>/`.
 - Model weights live in `$PROTFORGE_HOME/models/` and are mounted into containers.
   They are **not** part of this repository.

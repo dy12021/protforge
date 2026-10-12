@@ -9,11 +9,11 @@ Host: **AF3Native WSL** (`wsl.exe -d AF3Native`). One cache, two consumers.
 
 | Piece | Path |
 |---|---|
-| genetic databases | `/db` (AF3 v3.0 archives, bind-mounted from `E:\oih\models\af3_db`) |
+| genetic databases | `/db` (AF3 v3.0 archives, bind-mounted from `<models-root>\af3_db`) |
 | jackhmmer | `/hmmer/bin/jackhmmer` (AF3's own build, with the `--seq_limit` patch) |
 | AF3 python package | `/app/alphafold/src` — usable only from `/alphafold3_venv/bin/python` |
 | shared a3m cache | `/msashared/cache/<dbset>/<hash>.a3m` |
-| scripts | `/mnt/e/oih/oih-upgrade/02-newtools/` |
+| scripts | `<tools-dir>/` |
 
 ## What is actually in /db
 
@@ -29,7 +29,7 @@ names is relative to uniref90, not to disk.
 | `pdb_seqres_2022_09_28.fasta` | 223 MB | ext4 `/` | — | template search |
 | `mmcif_files/` | 7354 files | ext4 `/` | — | templates |
 
-`mgy_clusters_2022_05.fa` is a symlink to `E:\oih\models\af3_db_extra\`, i.e. it
+`mgy_clusters_2022_05.fa` is a symlink to `<models-root>\af3_db_extra\`, i.e. it
 is **not** on ext4. `du -sh /db/*` reports `0` for it — that is `du` not
 following the symlink, not a truncated file. Use `stat` on the link target.
 
@@ -57,7 +57,7 @@ binary. Search parameters and the Stockholm→a3m conversion are then identical 
 Search one FASTA and write a3m per chain:
 
 ```bash
-/alphafold3_venv/bin/python /mnt/e/oih/oih-upgrade/02-newtools/oih_shared_msa.py \
+/alphafold3_venv/bin/python <tools-dir>/oih_shared_msa.py \
   --fasta query.fasta --outdir /msashared/out --dbs uniref90,bfd --n-cpu 12
 ```
 
@@ -65,21 +65,21 @@ Wire an OpenDDE job (search + inject `unpairedMsaPath` + emit a validation
 manifest):
 
 ```bash
-/alphafold3_venv/bin/python /mnt/e/oih/oih-upgrade/02-newtools/wire_opendde_msa.py \
+/alphafold3_venv/bin/python <tools-dir>/wire_opendde_msa.py \
   --job job.json --out job_msa.json --dbs uniref90,bfd --n-cpu 12
 ```
 
 Wire an ESMFold2 job from the *same* OpenDDE job file, reusing the same cache:
 
 ```bash
-/alphafold3_venv/bin/python /mnt/e/oih/oih-upgrade/02-newtools/wire_esmfold2_msa.py \
+/alphafold3_venv/bin/python <tools-dir>/wire_esmfold2_msa.py \
   --job job.json --out job_esm.json --variant full --dbs uniref90,bfd --n-cpu 12
 ```
 
 Validate the a3m files with OpenDDE's own parser:
 
 ```bash
-/opendde_venv/bin/python /mnt/e/oih/oih-upgrade/02-newtools/validate_a3m_for_opendde.py \
+/opendde_venv/bin/python <tools-dir>/validate_a3m_for_opendde.py \
   --pairs <out>/msa/_validate_pairs.json
 ```
 

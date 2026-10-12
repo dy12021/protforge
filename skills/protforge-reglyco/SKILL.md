@@ -13,7 +13,7 @@ description: |
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`C:/Users/dy120/.minimax/plugins/protforge` for this installation).
+> (`${PLUGIN_DIR}` for this installation).
 
 # ReGlyco / GlycoShape — glycosylation-aware design validation
 

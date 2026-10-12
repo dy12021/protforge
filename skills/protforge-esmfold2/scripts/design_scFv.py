@@ -299,10 +299,34 @@ def _resolve(roots, name):
     return None
 
 
+def _local_env(name, default=""):
+    """Read a value from scripts/local.env (gitignored, never published).
+
+    Lets a deployment point the weight search at its own model root without
+    that path being carried in the published source. See
+    scripts/local.env.example.
+    """
+    import pathlib as _pl
+    try:
+        f = _pl.Path(__file__).resolve().parents[3] / "scripts" / "local.env"
+        for line in f.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            if k.strip() == name:
+                return v.strip().strip('"').strip("'")
+    except (OSError, IndexError):
+        pass
+    return default
+
+
 def load_model(variant):
-    roots = [os.environ.get("ESMFOLD2_WEIGHTS"),
-             "/esmfold2/models", "/mnt/e/protforge/models",
-             "/mnt/e/oih/models"]   # pre-rename data root
+    # Probe order: $ESMFOLD2_WEIGHTS, any roots from scripts/local.env, then
+    # the built-in candidates.
+    roots = [os.environ.get("ESMFOLD2_WEIGHTS")]
+    roots += [r for r in _local_env("ESMFOLD2_MODELS_ROOTS").split(":") if r]
+    roots += ["/esmfold2/models", "/mnt/e/protforge/models"]
     roots = [r for r in roots if r]
     wname = "ESMFold2" if variant == "full" else "ESMFold2-Fast"
     wdir = _resolve(roots, wname)

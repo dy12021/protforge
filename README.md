@@ -75,7 +75,7 @@ GitHub 仓库子目录导入：在 URL 末尾追加 `?path=<subdir>` 或使用 `
 ### 目录约定
 
 ```
-$PROTFORGE_HOME/            # 数据与模型根，默认 E:/protforge
+$PROTFORGE_HOME/            # 数据与模型根，默认 <data-root>
 ├── data/
 │   ├── inputs/             # 放输入文件
 │   └── outputs/<job>_<tool>/   # 每个任务一个输出目录
@@ -91,7 +91,7 @@ $PROTFORGE_HOME/            # 数据与模型根，默认 E:/protforge
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `PROTFORGE_HOME` | `E:/protforge`（找不到则回落 `E:/oih`） | 数据与模型根 |
+| `PROTFORGE_HOME` | `<data-root>`（找不到则回落 `X:/root`） | 数据与模型根 |
 | `PROTFORGE_DATA` | `$PROTFORGE_HOME/data` | 输入 / 输出目录 |
 | `PROTFORGE_MODELS` | `$PROTFORGE_HOME/models` | 模型权重 |
 | `PROTFORGE_COMPOSE` | 自动探测 | compose 文件路径 |
