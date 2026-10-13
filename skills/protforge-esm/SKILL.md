@@ -1,10 +1,11 @@
 ---
 name: protforge-esm
-description: ESM-2 protein language model embeddings and pseudo-perplexity scoring (Docker container protforge-esm) — 650M parameter model, weights pre-cached Trigger: When the user asks for protein sequence embeddings, per-sequence quality/scoring (pseudo-perplexity), or featurization of protein sequences with ESM-2
+description: "ESM-2 protein language model embeddings and pseudo-perplexity scoring (Docker container protforge-esm) — 650M parameter model, weights pre-cached Trigger: When the user asks for protein sequence embeddings, per-sequence quality/scoring (pseudo-perplexity), or featurization of protein sequences with ESM-2"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # esm — ESM-2 embeddings / pseudo-perplexity

@@ -4,7 +4,7 @@ description: Query the public AlphaFold Protein Structure Database (Google DeepM
 ---
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the command below.
 
 # AlphaFold DB — query & download public predicted structures

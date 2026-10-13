@@ -1,10 +1,11 @@
 ---
 name: protforge-chemprop
-description: ADMET property prediction with chemprop (Docker container protforge-chemprop) — predict properties (default ESOL solubility) from SMILES using trained models in the ProtForge model library Trigger: When the user asks to predict ADMET properties (solubility, lipophilicity, toxicity, etc.) from SMILES strings using a trained chemprop model
+description: "ADMET property prediction with chemprop (Docker container protforge-chemprop) — predict properties (default ESOL solubility) from SMILES using trained models in the ProtForge model library Trigger: When the user asks to predict ADMET properties (solubility, lipophilicity, toxicity, etc.) from SMILES strings using a trained chemprop model"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # chemprop — ADMET property prediction

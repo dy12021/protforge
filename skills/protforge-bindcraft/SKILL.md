@@ -1,10 +1,11 @@
 ---
 name: protforge-bindcraft
-description: Launch end-to-end protein binder design with BindCraft (Docker container protforge-bindcraft, PyRosetta-free mode) Trigger: When the user asks to design a binder/de novo protein that binds a target, design binders against a target structure with specified hotspots, or run the BindCraft binder-design pipeline
+description: "Launch end-to-end protein binder design with BindCraft (Docker container protforge-bindcraft, PyRosetta-free mode) Trigger: When the user asks to design a binder/de novo protein that binds a target, design binders against a target structure with specified hotspots, or run the BindCraft binder-design pipeline"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # BindCraft — end-to-end binder design

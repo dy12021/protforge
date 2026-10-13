@@ -1,10 +1,11 @@
 ---
 name: protforge-diffdock
-description: Diffusion-model molecular docking with DiffDock (Docker container protforge-diffdock) — blind docking from receptor PDB + SMILES with confidence scores Trigger: When the user asks to dock a ligand by SMILES into a receptor without specifying a binding box, or wants equivariant diffusion docking poses with confidence scores
+description: "Diffusion-model molecular docking with DiffDock (Docker container protforge-diffdock) — blind docking from receptor PDB + SMILES with confidence scores Trigger: When the user asks to dock a ligand by SMILES into a receptor without specifying a binding box, or wants equivariant diffusion docking poses with confidence scores"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # diffdock — diffusion model docking

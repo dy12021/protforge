@@ -1,10 +1,11 @@
 ---
 name: protforge-autodock-gpu
-description: AutoDock4 GPU docking with autodock-gpu (Docker container protforge-autodock-gpu) — requires a precomputed autogrid maps (.maps.fld) file Trigger: When the user asks to run AutoDock4 docking on GPU given a precomputed grid (maps.fld) and a ligand pdbqt — fast batch docking once grids exist
+description: "AutoDock4 GPU docking with autodock-gpu (Docker container protforge-autodock-gpu) — requires a precomputed autogrid maps (.maps.fld) file Trigger: When the user asks to run AutoDock4 docking on GPU given a precomputed grid (maps.fld) and a ligand pdbqt — fast batch docking once grids exist"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # autodock-gpu — AutoDock4 on GPU

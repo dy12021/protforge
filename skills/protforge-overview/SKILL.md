@@ -1,7 +1,8 @@
 ---
 name: protforge-overview
-description: Overview of the ProtForge plugin — 23 computational-biology skills (containerized tools, WSL-hosted models, host-side clients), how they are wired to three runtimes, paths, conventions, and prerequisites. Trigger: When the user asks what bio tools are available or how the plugin is organized
+description: "Overview of the ProtForge plugin — 23 computational-biology skills (containerized tools, WSL-hosted models, host-side clients), how they are wired to three runtimes, paths, conventions, and prerequisites. Trigger: When the user asks what bio tools are available or how the plugin is organized"
 ---
+
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin. Resolve it
 > from the plugin context and substitute before invoking any command below.

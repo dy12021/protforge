@@ -1,10 +1,11 @@
 ---
 name: protforge-alphafold3
-description: DEPRECATED (2026-10-07) - superseded by protforge-esmfold2 / protforge-opendde, which score higher on antibody-antigen complexes and are permissively licensed. Do NOT route new work here. Predict protein/RNA/DNA/ligand complex structures with AlphaFold 3 (container protforge-alphafold3, models + databases on E:) Trigger: When the user asks for AlphaFold3 / AF3 structure prediction, folding a protein sequence, or validating a designed binder against its target. If the user only wants to look up an existing public model by UniProt accession (not a new prediction), use protforge-alphafold-db instead
+description: "DEPRECATED (2026-10-07) - superseded by protforge-esmfold2 / protforge-opendde, which score higher on antibody-antigen complexes and are permissively licensed. Do NOT route new work here. Predict protein/RNA/DNA/ligand complex structures with AlphaFold 3 (container protforge-alphafold3, models + databases on E:) Trigger: When the user asks for AlphaFold3 / AF3 structure prediction, folding a protein sequence, or validating a designed binder against its target. If the user only wants to look up an existing public model by UniProt accession (not a new prediction), use protforge-alphafold-db instead"
 deprecated: true
 deprecated_since: 2026-10-07
 superseded_by: [protforge-esmfold2, protforge-esmfold2-fast, protforge-opendde]
 ---
+
 
 > # ⛔ DEPRECATED — do not use for new work
 >
@@ -41,7 +42,7 @@ superseded_by: [protforge-esmfold2, protforge-esmfold2-fast, protforge-opendde]
 > cite AF3 directly).
 
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # AlphaFold 3 — structure prediction (DEPRECATED; see banner above)

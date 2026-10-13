@@ -1,10 +1,11 @@
 ---
 name: protforge-gnina
-description: Deep-learning molecular docking with gnina (Docker container protforge-gnina) — CNN-scored pose prediction from a receptor PDB and a SMILES ligand Trigger: When the user asks to dock a small molecule (SMILES) into a protein binding site with deep learning scoring, or wants docked poses + CNN affinity/Score for a receptor/ligand pair
+description: "Deep-learning molecular docking with gnina (Docker container protforge-gnina) — CNN-scored pose prediction from a receptor PDB and a SMILES ligand Trigger: When the user asks to dock a small molecule (SMILES) into a protein binding site with deep learning scoring, or wants docked poses + CNN affinity/Score for a receptor/ligand pair"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # gnina — deep learning docking

@@ -1,7 +1,8 @@
 ---
 name: protforge-esmfold2
-description: Predict protein/complex structures with ESMFold2 (Biohub) - all-atom co-folding, single-sequence or MSA-conditioned - and design binders on an existing antibody scaffold via the official DesignApp. Runs in the AF3Native WSL distro at /esmfold2. Trigger when the user asks to fold a protein or complex, predict an antibody-antigen / protein-protein structure, design or affinity-maturise an antibody CDR, validate a designed binder against its target, or rank candidate interfaces by ipTM. Two variants: full (48 pair layers, accepts MSA) and Fast (24 layers, single-sequence only, ~1.7x faster, for high-throughput screening). Replaces the deprecated protforge-alphafold3. Use protforge-af3-msa first if MSA-conditioned folding is needed.
+description: "Predict protein/complex structures with ESMFold2 (Biohub) - all-atom co-folding, single-sequence or MSA-conditioned - and design binders on an existing antibody scaffold via the official DesignApp. Runs in the AF3Native WSL distro at /esmfold2. Trigger when the user asks to fold a protein or complex, predict an antibody-antigen / protein-protein structure, design or affinity-maturise an antibody CDR, validate a designed binder against its target, or rank candidate interfaces by ipTM. Two variants: full (48 pair layers, accepts MSA) and Fast (24 layers, single-sequence only, ~1.7x faster, for high-throughput screening). Replaces the deprecated protforge-alphafold3. Use protforge-af3-msa first if MSA-conditioned folding is needed."
 ---
+
 
 # ESMFold2 — all-atom co-folding + binder design
 

@@ -1,10 +1,11 @@
 ---
 name: protforge-proteinmpnn
-description: Design protein sequences for a given backbone structure with ProteinMPNN (Docker container protforge-proteinmpnn) Trigger: When the user asks to design sequences for a protein structure, fix/salvage a backbone with sequence design, or generate variant sequences for a PDB (fixed-backbone sequence design)
+description: "Design protein sequences for a given backbone structure with ProteinMPNN (Docker container protforge-proteinmpnn) Trigger: When the user asks to design sequences for a protein structure, fix/salvage a backbone with sequence design, or generate variant sequences for a PDB (fixed-backbone sequence design)"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # ProteinMPNN — fixed-backbone sequence design

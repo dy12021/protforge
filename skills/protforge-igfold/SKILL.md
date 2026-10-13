@@ -1,10 +1,11 @@
 ---
 name: protforge-igfold
-description: Predict antibody / nanobody 3D structures from sequences with IgFold (Docker container protforge-igfold) Trigger: When the user asks to predict/model an antibody, nanobody (VHH), Fab, or Fv structure from heavy/light chain sequences, or to assess antibody model confidence
+description: "Predict antibody / nanobody 3D structures from sequences with IgFold (Docker container protforge-igfold) Trigger: When the user asks to predict/model an antibody, nanobody (VHH), Fab, or Fv structure from heavy/light chain sequences, or to assess antibody model confidence"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # IgFold — antibody structure prediction

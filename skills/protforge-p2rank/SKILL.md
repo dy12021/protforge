@@ -1,10 +1,11 @@
 ---
 name: protforge-p2rank
-description: Predict and rank protein binding pockets with P2Rank machine learning (Docker container protforge-p2rank) Trigger: When the user asks for ML-based binding pocket prediction, ligandable site ranking, or a cross-check of fpocket pocket detection on a protein structure (PDB)
+description: "Predict and rank protein binding pockets with P2Rank machine learning (Docker container protforge-p2rank) Trigger: When the user asks for ML-based binding pocket prediction, ligandable site ranking, or a cross-check of fpocket pocket detection on a protein structure (PDB)"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # p2rank — ML binding pocket prediction

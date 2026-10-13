@@ -1,10 +1,11 @@
 ---
 name: protforge-freesasa
-description: Solvent accessible surface area (SASA) analysis and ADC conjugation site identification with FreeSASA (host Python, no Docker) — per-residue SASA and exposed Lys/Cys/Thr/Ser ranking Trigger: When the user asks for solvent accessible surface area per residue, exposed residues on a protein structure, or candidate conjugation sites for ADCs (antibody-drug conjugates) / surface lysines and cysteines
+description: "Solvent accessible surface area (SASA) analysis and ADC conjugation site identification with FreeSASA (host Python, no Docker) — per-residue SASA and exposed Lys/Cys/Thr/Ser ranking Trigger: When the user asks for solvent accessible surface area per residue, exposed residues on a protein structure, or candidate conjugation sites for ADCs (antibody-drug conjugates) / surface lysines and cysteines"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # freesasa — SASA & ADC conjugation site candidates

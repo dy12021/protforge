@@ -1,10 +1,11 @@
 ---
 name: protforge-fpocket
-description: Detect and rank protein binding pockets with fpocket (Docker container protforge-fpocket) Trigger: When the user asks to detect binding pockets, find binding sites, identify cavities, or assess druggability of a protein structure (PDB/mmCIF)
+description: "Detect and rank protein binding pockets with fpocket (Docker container protforge-fpocket) Trigger: When the user asks to detect binding pockets, find binding sites, identify cavities, or assess druggability of a protein structure (PDB/mmCIF)"
 ---
 
+
 > Note: `${PLUGIN_DIR}` is the absolute install path of this plugin
-> (`${PLUGIN_DIR}` for this installation). Resolve it from the plugin
+> (for this installation). Resolve it from the plugin
 > context and substitute before invoking the bash command below.
 
 # fpocket — binding pocket detection
