@@ -50,3 +50,6 @@ venv/
 # Editor / sed backup files (sed -i.bak, cp before patching)
 *.bak
 *.orig
+# Deployment-local helper scripts kept in the working tree, never published.
+# They carry this machine's absolute paths and are not part of the plugin.
+tools/
