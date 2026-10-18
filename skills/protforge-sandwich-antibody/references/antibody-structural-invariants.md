@@ -111,6 +111,29 @@ Trp52 还在，不代表它还压着 VL 的 Phe。
 `license-registry.md`。这是个免费的断言，不值得为它引入一个许可证受限的依赖。
 
 
+## 7. 二聚体埋藏：接触表 ≠ 埋藏表
+
+抗原是同源二聚体时，**「这个残基在二聚体里埋藏吗」必须用 ΔSASA 定量回答**，
+不能用「它出现在界面接触表里」代替。
+
+```python
+# 单体 vs 二聚体，逐残基 FreeSASA
+mono = freesasa.calc(freesasa.Structure(str(monomer_pdb))).residueAreas()["A"]
+dimer = freesasa.calc(freesasa.Structure(str(dimer_pdb))).residueAreas()["A"]
+d_rel = mono[i].relativeTotal - dimer[i].relativeTotal   # 伙伴链遮蔽的面积
+exposed = d_rel < 0.10
+```
+
+**两种定义会差一批残基。** 实测 BDNF 成熟体二聚体：`dock3_pair.json` 的
+`iface_residues`（链间**接触**表，37 个）与 FreeSASA 判定为埋藏的（30 个）相差
+7 个残基——11, 42, 50, 51, 69, 109, 115 属于**接触但暴露**，位于界面边缘。
+
+> **教训**：接触表包含界面「边缘」——那里残基相触却并未被遮蔽。本项目曾据
+> 「残基 50 埋藏」排除三个候选，那实际是「残基 50 被接触」。**被描述成事实的
+> 机制性前提要用定量方法复核**，因为它会一路决定筛选结果却不写在任何检查里。
+>
+> 同时：埋藏的**侧链**才真正影响抗体能否接触，`relativeSideChain` 要单独看。
+
 ## Commentary（不要写成断言）
 
 - 芳香环含量、非特异结合倾向、聚集风险：值得记录，但不是二值判据。
