@@ -61,19 +61,60 @@ ParaSurf 的安装比本插件其他工具重，**不要在跑通之前提交 GP
 gdown --id 1nd3npYK303e8owDBvW8Ygd5m9SD1puhR -O weights/Paragraph_expanded_best.pth
 ```
 
-### 走官方 Dockerfile（推荐）
+### 走官方 Dockerfile，但必须先修两处
 
-上游 Dockerfile 是自包含的：CUDA 基础镜像 + `build-essential`（**这一步就是为了
-编 `dms`**）+ Miniconda + ParaSurf 环境 + openbabel + gdown。它在镜像内部重新
-clone 仓库，所以本地那份源码只用来提供 Dockerfile：
+上游 Dockerfile **直接用会失败**，两个独立的原因。修复见同目录
+`Dockerfile.protforge`。
+
+**① Anaconda ToS 会挡住非交互构建**
+
+上游装 `Miniconda3-latest` 后对默认 Anaconda 频道执行 `conda create`，在 Anaconda
+的 ToS 机制下非交互构建直接报：
+
+```
+CondaToSNonInteractiveError: Terms of Service have not been accepted for:
+    - https://repo.anaconda.com/pkgs/main
+    - https://repo.anaconda.com/pkgs/r
+```
+
+修法有两条：`conda tos accept`，或**不碰 Anaconda 频道**。选后者——
+**接受服务条款是代表使用者作出的法律行为，不该由构建脚本或代理代劳**：
+
+```dockerfile
+RUN conda create -n ParaSurf python=3.10 -y --override-channels -c <conda-forge>
+```
+
+**② 容器内全部走国外源，实测会慢到构建超时**
+
+上游从 `archive.ubuntu.com`、`repo.anaconda.com`、`pypi.org` 取包。实测吞吐约
+2.5 MB/s，仅 `torch==2.1.2` 的 CUDA 轮子组（约 2.5 GB 的 nvidia-* 包）就装不完，
+构建直接冲破超时上限。**构建里所有源都要换成国内镜像**：
+
+| 源 | 换成 |
+|---|---|
+| apt | `https://mirrors.tuna.tsinghua.edu.cn/ubuntu` |
+| Miniconda | `https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/` |
+| pip | `https://pypi.tuna.tsinghua.edu.cn/simple`（用 `PIP_INDEX_URL` 环境变量） |
+| conda | `https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge` |
+
+基础镜像那一层走宿主机的 registry 镜像加速器（见 `protforge-overview` 的部署约定），
+不受此影响。实测换源后 apt 步骤从 150 秒级降到 20 秒级。
 
 ```bash
-git clone https://github.com/aggelos-michael-papadopoulos/ParaSurf.git
-cd ParaSurf && docker build -t parasurf:latest -f Dockerfile .
+cd ParaSurf && docker build -t parasurf:latest -f Dockerfile.protforge .
 ```
 
 本插件**不提供**预构建 `protforge-parasurf` 镜像——镜像带 CUDA 基础层且体积不小，
-是否预构建应由部署方决定。装好后用下面的 runner 调用。
+是否预构建应由部署方决定。
+
+**长构建不要挂在交互任务上。** 构建超时被杀会留下"日志断在半路、镜像不存在"的
+现场，看起来像网络卡死。正确做法是脱离任务超时独立运行，日志落盘：
+
+```bash
+docker build --progress=plain -t parasurf:latest -f Dockerfile.protforge . \
+  > build.out.log 2> build.err.log &
+```
+
 
 ## 命令
 

@@ -90,7 +90,7 @@ human. Background signal — polyreactivity — is what matters for an assay.
   `$PROTFORGE_DATA/inputs/`, outputs land in `$PROTFORGE_DATA/outputs/<job>_<tool>/`.
 - Model weights live in `$PROTFORGE_HOME/models/` and are mounted into containers.
   They are **not** part of this repository.
-- Containers resolve through `protforge_exec` / `protforge_ensure_container`, which
+- **Containers resolve through `protforge_exec` / `protforge_ensure_container`, which
   start a stopped container via the compose stack (`$PROTFORGE_COMPOSE`, auto-discovered
   under `$PROTFORGE_HOME`). `protforge_container` falls back to a legacy `oih-<tool>`
   container name, so pre-rename deployments keep working unchanged.
@@ -99,3 +99,38 @@ human. Background signal — polyreactivity — is what matters for an assay.
   the script exited 0.
 - Verify availability first: run the tool's smoke command from its own `SKILL.md`
   before committing GPU hours to a long job.
+
+### Site-local paths go in `scripts/local.env`
+
+`scripts/local.env` is gitignored and never published; copy it from
+`local.env.example`. Put anything machine-specific there — data root candidates,
+extra model roots, and the checkout path of **host-side** tools that are not
+containers (e.g. `PROTFORGE_POLYXPERT_HOME`, `PROTFORGE_PARASURF_HOME`,
+`PROTFORGE_POLYXPERT_PYTHON` pointing at that env's `python.exe`, which must be a
+single executable because runners resolve it with `command -v`).
+
+### Use domestic mirrors inside container builds
+
+A build that fetches from `archive.ubuntu.com`, `repo.anaconda.com` or `pypi.org`
+measured ~2.5 MB/s on this host, which is not enough to install a CUDA torch wheel
+set inside any reasonable build timeout. When building an image, point every source
+at a domestic mirror — `protforge-parasurf`'s `Dockerfile.protforge` is a working
+example:
+
+| 源 | 换成 |
+|---|---|
+| apt | `https://mirrors.tuna.tsinghua.edu.cn/ubuntu` |
+| conda | `https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge` |
+| pip | `https://pypi.tuna.tsinghua.edu.cn/simple` via `PIP_INDEX_URL` |
+
+The base-image pull goes through the host's registry mirror and is unaffected.
+
+Two further traps worth knowing before writing a Dockerfile:
+
+- **Anaconda's Terms of Service block non-interactive `conda create`** against the
+  default channels. Use `--override-channels -c conda-forge` instead of running
+  `conda tos accept` — accepting a licence on the operator's behalf is not an
+  automated build step.
+- **Run long builds detached from the calling task** (`... > build.out.log 2> build.err.log &`).
+  A build killed by a task timeout leaves a truncated log and no image, which looks
+  exactly like a network stall.
