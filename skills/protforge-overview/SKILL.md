@@ -1,6 +1,6 @@
 ---
 name: protforge-overview
-description: "Overview of the ProtForge plugin — 23 computational-biology skills (containerized tools, WSL-hosted models, host-side clients), how they are wired to three runtimes, paths, conventions, and prerequisites. Trigger: When the user asks what bio tools are available or how the plugin is organized"
+description: "Overview of the ProtForge plugin — 24 computational-biology skills (containerized tools, WSL-hosted models, host-side clients), how they are wired to three runtimes, paths, conventions, and prerequisites. Trigger: When the user asks what bio tools are available or how the plugin is organized"
 ---
 
 
@@ -9,7 +9,7 @@ description: "Overview of the ProtForge plugin — 23 computational-biology skil
 
 # ProtForge — overview
 
-23 skills wrapping computational-biology tools. This file is the router: it owns
+24 skills wrapping computational-biology tools. This file is the router: it owns
 the tool map, which of the three runtimes each skill uses, and the shared path
 and output conventions. Each individual skill's `SKILL.md` is the source of truth
 for its own invocation.
@@ -51,6 +51,7 @@ them causes crashes, so never install one runtime's packages into another.
 | `protforge-discotope3` | DiscoTope3 | Docker | B-cell epitope prediction |
 | `protforge-igfold` | IgFold | Docker | antibody / nanobody folding |
 | `protforge-freesasa` | FreeSASA | host | SASA + ADC conjugation sites |
+| `protforge-sandwich-antibody` | — (workflow) | — | sandwich capture+detection pair design: constraints, ordering, multi-seed reporting |
 
 ## Deprecated and blocked
 

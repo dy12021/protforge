@@ -3,7 +3,7 @@
   "name": "protforge",
   "displayName": "ProtForge",
   "version": "2.0.1",
-  "description": "23 computational-biology skills across three runtimes: prebuilt Docker containers (docking, pockets, MD, sequence design, epitopes, ADMET, antibody folding, RFdiffusion backbones), WSL-hosted models (ESMFold2, OpenDDE), and host-side clients (AlphaFold DB, FreeSASA, ReGlyco). AlphaFold 3 is retired in favour of ESMFold2/OpenDDE.",
+  "description": "24 computational-biology skills across three runtimes: prebuilt Docker containers (docking, pockets, MD, sequence design, epitopes, ADMET, antibody folding, RFdiffusion backbones), WSL-hosted models (ESMFold2, OpenDDE), and host-side clients (AlphaFold DB, FreeSASA, ReGlyco). AlphaFold 3 is retired in favour of ESMFold2/OpenDDE.",
   "author": {
     "name": "ProtForge contributors"
   },
