@@ -28,6 +28,30 @@ Ranked by how expensive each failure is. All four were observed in a real run
 4. **Any distance criterion is conformer-dependent.** One restrained relaxation
    samples one conformer. Report a distribution, never a single value.
 
+## Cost tiers — run the cheap gate before the expensive one
+
+Never spend GPU hours on a candidate that a seconds-long check can reject.
+
+| Tier | Cost | Content | Gate |
+|------|------|---------|------|
+| 0 | seconds, pure sequence | antigen facts; conserved Cys present; no CDR sequon; standard residues only; framework identical; CDR numbering self-consistent | **hard stop on failure** |
+| 1 | seconds, one pose read | contact-CDR positions; side-chain bulk ranking; dimer-interface blacklist | pick the order for Tier 2 |
+| 2 | minutes per design | side-chain rebuild + restrained relaxation | interface metrics |
+| 3 | minutes per design × seeds | multi-seed evaluation | robustness |
+| 4 | expensive | independent cross-check, ternary-complex simulation | cross-validation |
+
+## Metrics that must NOT be used to rank Ab–Ag candidates
+
+- **ProteinMPNN sequence score / loss.** It measures how native-like the sequence
+  looks. Ordering by it returned 0/6 where ordering by contact-surface bulk
+  returned 16/79, on the same pose.
+- **Aggregate ipTM.** Removing the antigen can *raise* it; it has no discriminative
+  power here. Read per-interface contact counts, BSA and clash counts instead.
+- **MM-GBSA / PRODIGY absolute values.** Two candidates whose interfaces differ by
+  ~0.2 Å are far inside the method's noise; ranking them manufactures false
+  precision. Useful only as a coarse tiebreak among clearly separated designs.
+- **A single relaxation's minimum distance.** See non-negotiable 4.
+
 ## Procedure
 
 ### 0. Antigen facts
