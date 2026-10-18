@@ -32,7 +32,7 @@
 | **tFold / tFold-Ag** | **PolyForm Noncommercial License 1.0.0** | 仓库 `LICENSE` 原文「You must agree the software license terms … only to non-commercial use purposes」。GitHub SPDX 亦为 `NOASSERTION`。腾讯 AI4S，抗体-抗原复合物 DockQ 0.217。**不可商用** |
 | **AbNatiV2 / p-AbNatiV2** | **CC BY-NC-SA 4.0** | README 与 PyPI 元数据原文：「This software is not to be used for commerical purposes」。370 万配对人类序列，天然配对 top-1 74%。**不可商用** |
 | **ImmunoMatch** | **CC-BY-NC-4.0** | 基于 AntiBERTa2；模型许可限制商用。**不可商用** |
-| **AbEpiTope-1.0** | **无 LICENSE 文件** | `https://api.github.com/repos/mnielLab/AbEpiTope-1.0/license` 返回 **404**。论文为 CC BY-NC，但**软件许可未声明** → 默认保留所有权利。**不可商用** |
+| **AbEpiTope-1.0** | **无 LICENSE 文件** | 仓库**存在**（`mnielLab/AbEpiTope-1.0`，GitHub API id 851582010，34 stars，最近推送 2026-06-23），但 `/license` 端点返回 **404**，仓库元数据 `"license": null`。论文为 CC BY-NC，但**软件许可未声明** → 默认保留所有权利。**不可商用** |
 | **ImmunoCheck** | **未核实** | 「学术与商用均免费」这一说法只在一个 BiStars 论坛回复里出现，**没有**来自工具方的声明。免费 API ≠ 可再分发的管线。**在核实到一手条款前不采用** |
 | **IgLM / PyRosetta** | 各自非商用 / 自定义 | Germinal 自身论文承认这是它「受限」的原因 |
 
