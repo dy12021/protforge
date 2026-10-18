@@ -104,10 +104,15 @@ here (`references/antibody-structural-invariants.md` for exact assertions):
 - Declared CDR sequences match the declared numbering.
 - **Polyreactivity** via `protforge-polyxpert`, for **both** antibodies
   separately (Tier 0b). For a reagent, this is the one sequence-level property
-  that maps directly onto assay background. Two constraints on its use: upstream
-  publishes no threshold, so a gate needs a threshold written down *in advance*
-  and never moved afterwards; and the training set is therapeutic antibodies, so
-  treat the score as a risk indicator on a designed CDR, not a probability.
+  that maps directly onto assay background. Three constraints on its use:
+  upstream publishes no threshold, so a gate needs a threshold written down *in
+  advance* and never moved afterwards; the training set is therapeutic
+  antibodies, so treat the score as a risk indicator on a designed CDR, not a
+  probability; and **run the upstream high/low controls in the same batch** —
+  a bare score with nothing to compare it against cannot be interpreted, and a
+  run whose controls do not separate is a broken run, not a surprising result.
+  Score below every known-low control is **not** proof of a clean antibody; it
+  is a distribution-out-of-distribution symptom and must be reported as such.
 
 ### 4. Order candidates by geometry, not by score
 

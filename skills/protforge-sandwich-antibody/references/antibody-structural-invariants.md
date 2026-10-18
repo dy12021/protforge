@@ -25,6 +25,22 @@ delivered VH Cys: 必须仍然包含 [22, 95/96]
 保守位点一起删。正确做法：把保守位点放进 `fixed_positions` 钉死，其余可设计
 位点仍然禁 C。
 
+**断言必须写成「恰好这两个 Cys」，不是「CDR 内无 Cys」。**
+
+写成后者会得到一个**把缺陷当不变式**的检查：Cys96 就是 CDR-H3 的第一个残基，
+所以任何正确的抗体都必然在 CDR 里有一个 Cys。本技能的第一版检查项正是
+「CDR 内无半胱氨酸」，它在缺陷版本上绿、在修好之后红——检查项本身错了。
+
+```python
+ACCEPT = {"VH": ({22, 96}, {22, 95}),   # 两个母本在铰链区差一个残基
+          "VL": ({23, 88},)}
+for nm, s in (("VH", vh), ("VL", vl)):
+    pos = {i + 1 for i, c in enumerate(s) if c == "C"}
+    ck(pos in ACCEPT[nm], f"{nm}: cysteines {sorted(pos)}")
+```
+
+要抓的缺陷是**多出来的** Cys（可错配、可成链间二硫键），不是那个正确的保守位点。
+
 ## 2. CDR 定义与编号
 
 同一套序列在 Chothia / Kabat / IMGT 下边界不同，**说清楚用哪套**。
