@@ -1,0 +1,172 @@
+# ParaSurf — ProtForge-local Dockerfile (China mirrors, CPU torch, slim base)
+#
+# Five deviations from upstream. Each one was found by actually running the
+# build, not by reading it.
+#
+# 1. Anaconda ToS. Upstream installs Miniconda3-latest then runs `conda create`
+#    against the default Anaconda channels, which fails non-interactively under
+#    the ToS rollout (CondaToSNonInteractiveError). We never contact those
+#    channels: `--override-channels -c <tuna conda-forge>`. Running
+#    `conda tos accept` would be a legal act on the operator's behalf, which a
+#    build script should not do.
+#
+# 2. Foreign package sources. apt/Miniconda/pip/conda measured ~2.5 MB/s from
+#    upstream and ~0.04 MB/s during the torch download. Everything now points at
+#    a domestic mirror. The base-image pull uses the host registry mirror and is
+#    unaffected.
+#
+# 3. torch is installed CPU-only. This is the difference between a build that
+#    finishes and one that does not. Upstream pins torch==2.1.2, and on PyPI the
+#    linux wheel is the CUDA build, which drags in ~2.3 GB of nvidia-* wheels.
+#    Measured here: 0.04 MB/s for that set -- hours, not minutes. The CPU wheel
+#    is 176 MB and pulls at 1.93 MB/s from mirrors.aliyun.com. ParaSurf's
+#    blind_predict.py takes --device {cuda,cpu}, so a CPU torch is a supported
+#    configuration, not a workaround.
+#
+# 4. openbabel comes from pip, not conda-forge, and drags X11 client libraries
+#    in with it. See steps 4a and 4b below.
+#
+# 5. The base image is plain ubuntu, NOT upstream's nvidia/cuda. Measured here:
+#    the CUDA build produced a 6.77 GB image whose `#18 unpacking` step ran for
+#    45+ minutes and never finished, leaving the image inspectable but not
+#    runnable. Two independent reasons the CUDA base is wrong for the default:
+#      * deviation 3 installs a CPU-only torch, so the ~5 GB CUDA runtime
+#        contributes nothing to `--device cpu`;
+#      * a GPU user cannot use this image as-is anyway -- they would have to
+#        install the CUDA torch build first, which is the documented way to get
+#        the GPU path, and that build needs the CUDA base again.
+#    So the CUDA base was pure weight for the configuration this file ships.
+#    For the GPU path put `FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04`
+#    back AND revert step 3 to the CUDA torch wheel; nothing else changes.
+#    (Both are ubuntu 22.04, so the apt mirror rewrite below is identical.)
+#
+# Each package group is its own layer so a rebuild reuses completed work and so
+# progress is visible in the build log instead of going silent for an hour.
+#
+# This file needs no build context: it clones ParaSurf itself (step below), so
+# `docker build -f Dockerfile.protforge <empty-dir>` works.
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# --- apt: tuna mirror for jammy (this base and the CUDA base are both 22.04) --
+#     TWO PHASES, and the split is not cosmetic. Plain ubuntu:22.04 ships no
+#     ca-certificates, so apt cannot verify an https mirror at all:
+#         No system certificates available. Try installing ca-certificates.
+#         Certificate verification failed: The certificate is NOT trusted.
+#         E: Unable to locate package wget
+#     The nvidia/cuda base happened to include ca-certificates, which is why
+#     this never fired before deviation 5 swapped the base -- and it is the one
+#     thing that base was still doing for us. Bootstrap over plain http (which
+#     apt accepts unauthenticated with a warning), install the certs, then go
+#     back to https for the real work.
+RUN sed -i -e 's|http://archive.ubuntu.com/ubuntu|http://mirrors.tuna.tsinghua.edu.cn/ubuntu|g' \
+           -e 's|http://security.ubuntu.com/ubuntu|http://mirrors.tuna.tsinghua.edu.cn/ubuntu|g' \
+           /etc/apt/sources.list && \
+    apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    sed -i 's|http://mirrors.tuna.tsinghua.edu.cn/ubuntu|https://mirrors.tuna.tsinghua.edu.cn/ubuntu|g' \
+           /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends wget git nano build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# --- Miniconda: tuna mirror, original URL kept as a fallback -----------------
+RUN wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh || \
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh; \
+    bash /tmp/miniconda.sh -b -p /opt/conda && \
+    rm /tmp/miniconda.sh
+
+ENV PATH="/opt/conda/bin:$PATH"
+SHELL ["/bin/bash", "-c"]
+
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+    PIP_TRUSTED_HOST=mirrors.tuna.tsinghua.edu.cn \
+    CONDA_CHANNELS=https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
+
+WORKDIR /workspace
+
+RUN git clone https://github.com/aggelos-michael-papadopoulos/ParaSurf.git
+
+# dms is the C++ surface backend; this step is why build-essential is installed.
+RUN cd ParaSurf/dms && make install && cd ..
+
+RUN conda create -n ParaSurf python=3.10 -y --override-channels -c "$CONDA_CHANNELS"
+
+# 3. torch first, CPU wheel. Installed by DIRECT URL, not by version spec:
+#    mirrors.aliyun.com/pytorch-wheels/cpu/ is a flat file listing, not a
+#    PEP 503 simple index, so `pip install torch==2.1.2 --index-url <that>`
+#    fails with "from versions: none". Naming the .whl works and leaves the
+#    dependency resolution on the default (tuna) index.
+#    The assertion afterwards is the point: requirements.txt pins
+#    torch==2.1.2, and PEP 440 makes `==2.1.2` match `2.1.2+cpu`, so pip skips
+#    it. If that ever stops holding, the silent failure mode is a 2.3 GB CUDA
+#    download -- so verify the installed version instead of trusting it.
+RUN conda run -n ParaSurf pip install --no-cache-dir \
+      "https://mirrors.aliyun.com/pytorch-wheels/cpu/torch-2.1.2%2Bcpu-cp310-cp310-linux_x86_64.whl" && \
+    conda run -n ParaSurf python -c "import torch,sys; \
+      v=torch.__version__; print('installed torch', v); \
+      sys.exit(0 if v=='2.1.2+cpu' else 'expected 2.1.2+cpu, got '+v)"
+
+# remaining requirements; torch is already satisfied and is skipped.
+RUN conda run -n ParaSurf pip install --no-cache-dir -r ParaSurf/requirements.txt
+
+# 4a. X11 client libraries. Needed by openbabel-wheel and nothing else.
+#     openbabel-wheel ships ~40 format plugins (wlnformat, xtcformat,
+#     chemdrawcdx, groformat, nwchem, pubchemjson, ...) that link against the X11
+#     client libraries. In this minimal CUDA base they are all absent, and the
+#     failure is NOT loud: every plugin prints "did not load properly" to stderr
+#     and is then silently dropped from the registry. The visible symptom lands
+#     somewhere else entirely -- openbabel/pybel.py:69 does
+#     `broken = [(x, y.strip()) for x, y in broken]` over descriptions split on
+#     " -- ", and with plugins missing some descriptions no longer carry that
+#     separator, so `from openbabel import pybel` dies with
+#     "ValueError: not enough values to unpack (expected 2, got 1)".
+#     Measured here: all of that inside one build step, six lines of unrelated-
+#     looking X11 errors, and a traceback pointing at pybel rather than at the
+#     real cause. Kept as its own layer so adding it does not invalidate the
+#     torch (230 s) and requirements (178 s) layers below it.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libxrender1 libxext6 libx11-6 libsm6 libice6 && \
+    rm -rf /var/lib/apt/lists/*
+
+# 4b. openbabel via pip, not conda.
+#     It is not an optional extra: ParaSurf/utils/features.py,
+#     ParaSurf/train/protein.py and ParaSurf/utils/bio_data_featurizer.py all do
+#     `from openbabel import pybel`, and the receptor is read through
+#     pybel.readfile('pdb', ...) to derive the SMARTS-based physicochemical
+#     features the model consumes. There is no path around it.
+#     `conda install -c conda-forge openbabel` went silent for 16+ minutes here
+#     and was killed. Note what that silence is and is not: `conda run` buffers
+#     its child's output and only emits it at the end, so an empty log is the
+#     EXPECTED state of a healthy solve, not evidence of a hang. What made this
+#     step not worth waiting on is cost -- the pip route installs in 2 seconds
+#     (16.1 MB at 7.7 MB/s), so there is no reason to pay for a second solve.
+#     openbabel-wheel is the upstream distribution of the Python bindings,
+#     prebuilt per Python version and platform; 3.1.1 is the branch ParaSurf was
+#     written against (see the 2.4.1 vs 3.1.1 comment in
+#     bio_data_featurizer.py). Verified present on the tuna mirror for
+#     cp310/manylinux x86_64.
+#     The assertion runs ParaSurf's own call on a real receptor rather than just
+#     importing pybel, and it checks the format registry rather than only the
+#     atom count: the step-4a failure above passed "does it import" style checks
+#     in spirit while the registry was broken underneath.
+#     Measured passing: atoms=3271 input_formats=148 pdb=True
+RUN conda run -n ParaSurf --no-capture-output pip install --no-cache-dir openbabel-wheel==3.1.1.23 && \
+    conda run -n ParaSurf --no-capture-output python -c "from openbabel import pybel; \
+      m = next(pybel.readfile('pdb', '/workspace/ParaSurf/test_blind_prediction/4N0Y_receptor_1.pdb')); \
+      n = len(m.atoms); f = len(pybel.informats); \
+      print('openbabel pybel atoms=%d input_formats=%d pdb=%s' % (n, f, 'pdb' in pybel.informats)); \
+      import sys; sys.exit(0 if (n > 1000 and f > 20 and 'pdb' in pybel.informats) \
+        else 'UNHEALTHY atoms=%d formats=%d pdb_registered=%s' % (n, f, 'pdb' in pybel.informats))"
+
+# 5. gdown fetches the weights from Google Drive, which no mirror can serve.
+RUN conda run -n ParaSurf pip install --no-cache-dir gdown
+
+RUN conda clean --all -y
+
+RUN echo "export PYTHONPATH=\$PYTHONPATH:/workspace/ParaSurf" >> ~/.bashrc
+
+EXPOSE 5000
+
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/conda/bin/activate ParaSurf && exec bash"]
