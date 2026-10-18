@@ -1,6 +1,6 @@
 ---
 name: protforge-overview
-description: "Overview of the ProtForge plugin — 24 computational-biology skills (containerized tools, WSL-hosted models, host-side clients), how they are wired to three runtimes, paths, conventions, and prerequisites. Trigger: When the user asks what bio tools are available or how the plugin is organized"
+description: "Overview of the ProtForge plugin — 26 computational-biology skills (containerized tools, WSL-hosted models, host-side clients), how they are wired to three runtimes, paths, conventions, and prerequisites. Trigger: When the user asks what bio tools are available or how the plugin is organized"
 ---
 
 
@@ -9,7 +9,7 @@ description: "Overview of the ProtForge plugin — 24 computational-biology skil
 
 # ProtForge — overview
 
-24 skills wrapping computational-biology tools. This file is the router: it owns
+26 skills wrapping computational-biology tools. This file is the router: it owns
 the tool map, which of the three runtimes each skill uses, and the shared path
 and output conventions. Each individual skill's `SKILL.md` is the source of truth
 for its own invocation.
@@ -23,7 +23,7 @@ them causes crashes, so never install one runtime's packages into another.
 |---|---|---|
 | Docker containers | docking, pockets, MD, sequence design, epitope, ADMET, antibody folding | one prebuilt image per tool |
 | WSL venvs | ESMFold2, OpenDDE | pinned CUDA builds; see each skill |
-| Host processes | AlphaFold DB client, FreeSASA, ReGlyco | no Docker, no GPU required |
+| Host processes | AlphaFold DB client, FreeSASA, ReGlyco, PolyXpert | no Docker; PolyXpert runs on CPU |
 
 ## Tool map
 
@@ -48,10 +48,31 @@ them causes crashes, so never install one runtime's packages into another.
 | `protforge-gromacs` | GROMACS | Docker | molecular dynamics (protein-only) |
 | `protforge-esm` | ESM-2 | Docker | sequence embeddings / pseudo-perplexity |
 | `protforge-chemprop` | Chemprop | Docker | ADMET prediction (ESOL reference model) |
-| `protforge-discotope3` | DiscoTope3 | Docker | B-cell epitope prediction |
+| `protforge-discotope3` | DiscoTope3 | Docker | B-cell epitope prediction (**antibody-agnostic**) |
+| `protforge-parasurf` | ParaSurf | host + manual install | paratope-antigen interface prediction (**antibody-conditioned**) |
+| `protforge-polyxpert` | PolyXpert | host, CPU | sequence-only polyreactivity (assay background) |
 | `protforge-igfold` | IgFold | Docker | antibody / nanobody folding |
 | `protforge-freesasa` | FreeSASA | host | SASA + ADC conjugation sites |
 | `protforge-sandwich-antibody` | — (workflow) | — | sandwich capture+detection pair design: constraints, ordering, multi-seed reporting |
+
+## Licensing
+
+Any third-party model entering the pipeline must be cleared for commercial use
+**before** it is written into a workflow — not after. `protforge-sandwich-antibody`
+carries the registry with per-tool evidence in
+`references/license-registry.md`; the three cases worth knowing before you
+recommend anything:
+
+- **No LICENSE file means all rights reserved**, even when the paper is open
+  access. AbEpiTope-1.0 is in this position.
+- **tFold-Ag is PolyForm Noncommercial**, so the usual "leading Ab-Ag model" is
+  not an option for a commercial pipeline. Boltz-2 (MIT) is.
+- **Code licence and weights licence are separate.** PolyXpert is MIT code and
+  CC-BY-4.0 weights.
+
+Diagnostic reagents and therapeutics also need different gates: immunogenicity /
+MHC-II scoring is meaningful for a drug, not for an antibody that never enters a
+human. Background signal — polyreactivity — is what matters for an assay.
 
 ## Deprecated and blocked
 

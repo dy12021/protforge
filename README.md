@@ -1,7 +1,7 @@
 # ProtForge
 
-> 24 个计算生物学技能的可移植 Agent 插件包 — 结构预测、蛋白与 binder 设计、分子对接、
-> 分子动力学、表位预测、糖基化感知验证。
+> 26 个计算生物学技能的可移植 Agent 插件包 — 结构预测、蛋白与 binder 设计、分子对接、
+> 分子动力学、表位预测、可开发性过滤、糖基化感知验证。
 
 ProtForge 把一批成熟的开源计算生物学工具包装成 Agent 可路由的技能：每个工具一个
 skill，附带自己的输入约定、命令、输出契约和踩坑记录。它不重新实现这些工具，而是
@@ -32,7 +32,9 @@ skill，附带自己的输入约定、命令、输出契约和踩坑记录。它
 | `protforge-gromacs` | GROMACS | Docker | 分子动力学（蛋白体系） |
 | `protforge-esm` | ESM-2 | Docker | 序列嵌入 / 拟困惑度 |
 | `protforge-chemprop` | Chemprop | Docker | ADMET 预测（仅 ESOL 溶解度模型） |
-| `protforge-discotope3` | DiscoTope3 | Docker | B 细胞表位预测 |
+| `protforge-discotope3` | DiscoTope3 | Docker | B 细胞表位预测（**不看抗体**） |
+| `protforge-parasurf` | ParaSurf | 宿主机 + 手工安装 | 互补位-抗原界面预测（**看抗体**，MIT） |
+| `protforge-polyxpert` | PolyXpert | 宿主机，CPU | 序列级聚反应性 = 试剂盒背景信号 |
 | `protforge-igfold` | IgFold | Docker | 抗体 / 纳米抗体折叠 |
 | `protforge-freesasa` | FreeSASA | 宿主机 | 溶剂可及表面积 + ADC 偶联位点 |
 
@@ -44,7 +46,7 @@ ProtForge 刻意把运行时分开，因为它们的 CUDA 构建互不兼容，�
 |---|---|---|
 | Docker 容器 | 对接、口袋、MD、序列设计、表位、ADMET、抗体折叠、骨架设计 | 每个工具一个预构建镜像 |
 | WSL venv | ESMFold2、OpenDDE | 各自锁定 CUDA 版本，详见对应 SKILL.md |
-| 宿主机进程 | AlphaFold DB、FreeSASA、ReGlyco | 不需要 Docker，也不需要 GPU |
+| 宿主机进程 | AlphaFold DB、FreeSASA、ReGlyco、PolyXpert | 不需要 Docker，也不需要 GPU |
 
 ---
 

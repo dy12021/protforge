@@ -35,6 +35,7 @@ Never spend GPU hours on a candidate that a seconds-long check can reject.
 | Tier | Cost | Content | Gate |
 |------|------|---------|------|
 | 0 | seconds, pure sequence | antigen facts; conserved Cys present; no CDR sequon; standard residues only; framework identical; CDR numbering self-consistent | **hard stop on failure** |
+| 0b | seconds-to-minutes, pure sequence, CPU | polyreactivity (`protforge-polyxpert`) — costs one model load, no structure needed | **report both scores; gate only on a threshold written down in advance** |
 | 1 | seconds, one pose read | contact-CDR positions; side-chain bulk ranking; dimer-interface blacklist | pick the order for Tier 2 |
 | 2 | minutes per design | side-chain rebuild + restrained relaxation | interface metrics |
 | 3 | minutes per design × seeds | multi-seed evaluation | robustness |
@@ -101,6 +102,12 @@ here (`references/antibody-structural-invariants.md` for exact assertions):
   length, framework and structure round-trip checks.
 - Framework identical to the parent at every position.
 - Declared CDR sequences match the declared numbering.
+- **Polyreactivity** via `protforge-polyxpert`, for **both** antibodies
+  separately (Tier 0b). For a reagent, this is the one sequence-level property
+  that maps directly onto assay background. Two constraints on its use: upstream
+  publishes no threshold, so a gate needs a threshold written down *in advance*
+  and never moved afterwards; and the training set is therapeutic antibodies, so
+  treat the score as a risk indicator on a designed CDR, not a probability.
 
 ### 4. Order candidates by geometry, not by score
 
@@ -131,14 +138,64 @@ signatures. Non-negotiables:
 Fv–Fv clearance and epitope non-overlap, measured on the delivered side chains —
 and again per seed, for the same reason.
 
-### 7. Independent cross-check
+There is no off-the-shelf "sandwich ELISA pair scorer". If you want to rank
+candidate pairs rather than pass/fail a single pair, compose a score from parts
+that each mean something, and say in the report which parts they are:
 
-The epitope came from the docking that produced the pose. Cross-check with
-`protforge-discotope3`, whose failures differ from a rigid-body dock's.
-Disagreement is information. Do not re-fold an Fv with `protforge-igfold` when a
-crystal scaffold is already in hand.
+- antibody-specific epitope predictions from the two antibodies (`protforge-parasurf`),
+- their separation on the antigen surface,
+- whether both Fv can be placed at once on the **full oligomer** — a steric
+  coexistence check, which is a different and much easier question than whether
+  the ternary complex is real,
+- per-antibody BSA in the ternary assembly vs BSA alone, to catch one antibody
+  being squeezed by the other's presence.
 
-### 8. Report honestly
+**What such a score cannot do:** it does not rank by affinity, and it does not
+replace sequential-binding measurement. Coexistence is necessary, not sufficient.
+Report the components separately as well as the total — a single fused number
+hides which term is carrying the decision.
+
+### 7. VH–VL pairing regression
+
+In a CDR-graft route the VH and VL come from the **same crystal structure** and
+the framework is unchanged, so the VH–VL pairing is inherited and known — it is
+not something a predictor has to supply. The real risk is narrower: a grafted CDR
+participating in the H–L interface (CDR-H3 and CDR-L1 sit on it) can pull the two
+domains apart. Measure it, do not model it:
+
+- H–L interface contact count and BSA on the **delivered** Fv, against the same
+  quantity on the **parent** scaffold.
+- Any VH or VL residue that is a CDR residue in the design but an H–L interface
+  residue in the parent — check whether its side chain now points away from the
+  partner chain.
+
+Assert retention of the parent's interface, not an absolute threshold. A design
+that loses a quarter of the parent's H–L BSA has a real problem even if it still
+clears every other gate.
+
+**Do not reach for a pairing-prediction model here.** The two obvious candidates
+are unusable: `p-AbNatiV2` is CC BY-NC-SA 4.0 and states it is not for
+commercial use, `ImmunoMatch` is CC-BY-NC-4.0, and `OpenGerminal` (Apache 2.0) is
+a VHH design pipeline with no pairing output. See `references/license-registry.md`.
+
+### 8. Independent cross-check
+
+The epitope came from the docking that produced the pose. Cross-check with tools
+whose failures differ from a rigid-body dock's — the criterion is **different
+failure modes**, not "a second opinion":
+
+- `protforge-parasurf` — **antibody-conditioned**: it sees the antibody, so it can
+  answer "does *this* antibody bind *here*". This is the only cross-check in the
+  stack with that capability; use it when it is available.
+- `protforge-discotope3` — **antibody-agnostic**: it answers "is this a good
+  epitope for *any* antibody". It cannot confirm an antibody-specific claim, so
+  it corroborates the region, not the pairing.
+
+Report the intersection **and** the difference. Disagreement is information.
+Do not reconcile it by taking the union, and do not re-fold an Fv with
+`protforge-igfold` when a crystal scaffold is already in hand.
+
+### 9. Report honestly
 
 - Parent-pose and delivered-sequence numbers in **separately labelled blocks**,
   never same-named fields at the same level. Every number names the file it was
@@ -157,9 +214,12 @@ crystal scaffold is already in hand.
 | 1 pose | `protforge-vina-gpu` / `protforge-gnina` / `protforge-autodock-gpu` | Docker |
 | 1 interface scoring | `protforge-freesasa` | host |
 | 2–4 sequence design | `protforge-proteinmpnn` | Docker |
+| 3 polyreactivity | `protforge-polyxpert` | host, CPU |
 | 4 hotspot context | `protforge-pesto` | Docker |
 | 5 relaxation | GROMACS or OpenMM (`protforge-gromacs` for the container) | Docker |
-| 7 independent epitope | `protforge-discotope3` | Docker |
+| 6 ternary coexistence | `protforge-opendde` or `protforge-esmfold2` | WSL |
+| 7 VH–VL interface | `protforge-freesasa` + a distance count | host |
+| 8 independent epitope | `protforge-parasurf` (antibody-conditioned) / `protforge-discotope3` (region only) | host+Docker / Docker |
 
 ## Output contract
 
@@ -181,11 +241,15 @@ passes.
 ## References
 
 - `references/antibody-structural-invariants.md` — conserved residues, CDR
-  numbering, and which items are assertions versus commentary.
+  numbering, VH–VL interface retention, and which items are assertions versus
+  commentary.
 - `references/relaxation-and-screening.md` — relaxation recipe, seeding,
   NaN guard, multi-seed evaluation, geometry-ordered screening.
 - `references/defect-log.md` — defects from a real run: symptom, root cause,
   how each was detected, and why the original check missed it.
+- `references/license-registry.md` — which external models may enter this
+  pipeline, with the evidence and the date it was checked. Includes the tools
+  that were rejected and what closes the gap instead.
 
 ## Platform notes
 
