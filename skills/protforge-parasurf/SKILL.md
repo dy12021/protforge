@@ -25,6 +25,22 @@ DiscoTope3 回答「蛋白表面哪些区域可能被**任意**抗体识别」�
 对接不同**：它看互补位与抗原表面的几何契合，不看对接打分函数。两者不一致就是
 信息，不要和成平均。
 
+## 输入是抗体——标志名是错的
+
+上游的标志叫 `--receptor`,但**传进去的必须是抗体结构**。源码里写着：
+
+```python
+parser.add_argument('--receptor', ..., help="Path to the receptor (antibody or paratope) PDB file.")
+is_antibody, message = antibody_input_recognition(receptor)
+if not is_antibody:
+    print("Please provide a valid antibody structure as input."); exit(1)
+```
+
+README 正文说「on an antibody file」是对的,而变量名 `receptor` 是误导——代码自己
+会校验并在不是抗体时 `exit(1)`。**ParaSurf 回答的是「给定这条抗体,它结合哪里」**,
+这正是它与 DiscoTope3 的区别,也是它在交叉验证里的价值。传抗原进去会直接被判为
+非法输入,不会给你一个假结果。
+
 ## 前置条件（都满足才往下走）
 
 ParaSurf 的安装比本插件其他工具重，**不要在跑通之前提交 GPU/机时**：
@@ -35,68 +51,62 @@ ParaSurf 的安装比本插件其他工具重，**不要在跑通之前提交 GP
 | OpenBabel | conda-forge | 化学数据预处理 |
 | `dms` C++ 库 | `cd dms && make install` | 表面分子表示的构建后端 |
 | `PYTHONPATH` | 指向 ParaSurf 仓库根 | 缺了会 import 失败 |
-| 模型权重 | **Google Drive 手工下载** | 见下 |
+| 权重 | **`.pth` 单文件**，每个基准一个 | 见下 |
 
-**权重在 Google Drive，不是 pip 包、不是 HF。** 每个基准数据集一条链接
-（PECAN / Paragraph Expanded / 全文-重链-轻链 / MIPE 五个 fold）。选定一个
-基准，下载对应权重，放到 `$PROTFORGE_MODELS/parasurf/`。
+权重是**文件不是目录**。上游给的是 Google Drive 链接（PECAN / Paragraph Expanded
+/ 全文-重链-轻链 / MIPE 五个 fold），取法用 **`gdown`**——上游自己的
+`Docker/README.md` 就是这么写的：
 
-### Windows 上走 Docker
+```bash
+gdown --id 1nd3npYK303e8owDBvW8Ygd5m9SD1puhR -O weights/Paragraph_expanded_best.pth
+```
 
-`make install` 在 Windows 上不是一条能直接抄的命令。上游提供了 Dockerfile，
-**Windows 优先用 Docker 路线**：
+### 走官方 Dockerfile（推荐）
+
+上游 Dockerfile 是自包含的：CUDA 基础镜像 + `build-essential`（**这一步就是为了
+编 `dms`**）+ Miniconda + ParaSurf 环境 + openbabel + gdown。它在镜像内部重新
+clone 仓库，所以本地那份源码只用来提供 Dockerfile：
 
 ```bash
 git clone https://github.com/aggelos-michael-papadopoulos/ParaSurf.git
-cd ParaSurf && cat Docker/README.md     # 上游自己的安装说明，以它为准
+cd ParaSurf && docker build -t parasurf:latest -f Dockerfile .
 ```
 
-本插件**没有**预构建 `protforge-parasurf` 镜像，也**不提供**开箱即用的
-compose 服务——这是刻意的：仓库不携带镜像构建，权重也要手工下载。
-装好之后用下面的 runner 调用。
-
-## 先确认输入契约，再跑
-
-**上游 README 的散文和命令行标志名不一致**：正文说「Run a blind prediction on
-an **antibody** file」，而标志是 `--receptor`，示例文件叫 `4N0Y_receptor_1.pdb`。
-这两者不能同时字面成立。
-
-**装好之后第一件事是读它自己的帮助，不要照抄本文档：**
-
-```bash
-python "${PARASURF_HOME}/blind_predict.py" --help
-```
-
-确认它到底要**抗体结构**、**抗原结构**，还是**复合物**。下面的 runner 按 README
-字面传 `--receptor`，如果你 `--help` 读出来不是这个语义，**改 runner，不要改
-结论**。
+本插件**不提供**预构建 `protforge-parasurf` 镜像——镜像带 CUDA 基础层且体积不小，
+是否预构建应由部署方决定。装好后用下面的 runner 调用。
 
 ## 命令
 
 ```bash
 bash "${PLUGIN_DIR}/skills/protforge-parasurf/scripts/parasurf.sh" \
-     "$pdb_path" "$job_name" "$weights_dir"
+     "$antibody_pdb" "$job_name" "$weights.pth" "cuda"
 ```
 
-- `$pdb_path` — 绝对路径，或 `inputs/` 下的文件名（按 `--help` 确认的语义准备）
+- `$antibody_pdb` — **抗体**结构的绝对路径，或 `inputs/` 下的文件名
 - `$job_name` — 输出目录名，默认取输入文件名
-- `$weights_dir` — ParaSurf 权重目录，默认 `$PROTFORGE_MODELS/parasurf`
+- `$weights.pth` — 权重**文件**路径，默认取 `$PROTFORGE_PARASURF_WEIGHTS`
+- 第四个参数 `cuda` / `cpu`，默认 `cuda`
 
 批量：
 
 ```bash
-python "${PARASURF_HOME}/blind_predict_folder.py" \
-       -i <目录> -w <权重> -d 0.2
+python blind_predict_folder.py -i <目录> -w <权重> -d 0.2
 ```
 
 ## 读结果
 
 输出目录：`$PROTFORGE_DATA/outputs/<job>_parasurf/`
 
-- runner 打印 `PROTFORGE_STATUS: OK` / `FAIL`，以及 `PROTFORGE_PARASURF_FILES:`
-  列出的产出文件。
-- 界面预测的落盘格式以本次运行实际产出为准——**先 `ls` 再写报告**，
-  不要照抄上游截图里的列名。上游没有承诺稳定 schema。
+**上游把结果写在输入 PDB 旁边的目录里**：`<stem>_pred.pdb`（逐残基）、
+`<stem>_pred_per_atom.pdb`（逐原子）、`centers.txt`、`pocket<N>.pdb`，运行期间还
+会在同一目录留下临时 `*.surfpoints`（结束会删）。
+
+所以 runner 会把输入**复制**一份到输出目录再跑——直接指向调用方的文件会在输入
+目录里堆产物。
+
+runner 打印 `PROTFORGE_PARASURF_RESIDUE_FILES`、`PROTFORGE_PARASURF_POCKETS`
+和实际产出的文件列表。
+
 
 ## 报告时怎么写
 
