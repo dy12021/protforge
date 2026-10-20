@@ -23,6 +23,16 @@ bash "${PLUGIN_DIR}/skills/protforge-freesasa/scripts/protforge-freesasa.sh" "$p
 `$pdb_path` may be an absolute host path or just a filename under inputs/.
 The script prints `PROTFORGE_STATUS: OK` plus the top 5 conjugation candidates.
 
+## Task runtime and invocation records
+
+For every invocation, persist a task record outside the process memory. The record
+must include the job name, resolved input path, start timestamp, end timestamp,
+exit status, PID, command parameters, output directory, and log/stderr paths.
+Associate the PID with the task ID so that the task can be queried and resumed
+after a service restart. Do not rely on a retained PID or stderr file alone;
+when recovering a task, verify that the recorded process is still alive before
+resuming or restarting it.
+
 ## Reading the result
 
 Output directory: `$PROTFORGE_HOME/data/outputs/<job_name>_freesasa/`
