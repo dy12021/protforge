@@ -137,6 +137,22 @@ signatures. Non-negotiables:
 - Evaluate every geometric criterion over several seeds; report
   min / median / max and the fraction that clear the bar. **1/4 conformers is
   not a pass.**
+- **Never use `nonbondedMethod=NoCutoff`.** It evaluates *all* N² atom pairs;
+  with implicit solvent one energy+force call costs ~0.86 s at 6753 atoms, so a
+  2000-iteration minimisation needs ~57 minutes and never finishes inside any
+  practical command timeout. Use `CutoffNonPeriodic` with a 1.0–1.2 nm cutoff
+  (OpenMM 8.x renamed `CutoffNonbonded`): ~0.05 s per call, ~3.3 minutes for
+  the same minimisation — **17× faster**. *Pre-flight: time one
+  `getState(getEnergy=True, getForces=True)`; above 0.5 s you are on the N² wall.*
+- Add every `CustomExternalForce` **before** `Simulation(...)`, then
+  `sim.context.reinitialize()`. A force added afterwards never reaches the
+  Context: the restraint fails **silently** — the run looks healthy and the
+  antibody drifts away from its pose.
+- Enumerate the OpenCL devices (`getDevices()`) before choosing a platform, and
+  fall back to CPU when the list is empty — do not hard-code a platform that may
+  not exist, since that exception tends to surface only after a long run.
+  *Measured here: OpenCL ≈ CPU (no discrete GPU exposed to the OpenCL runtime),
+  so the cutoff is the win, not the platform.*
 
 ### 6. Record the sandwich geometry
 

@@ -145,11 +145,14 @@ stage 2：移除全部约束 + context.reinitialize(preserveState=True)，然后
 > 仍停在对接的配准上，接触距离不变。正确的结论是「换序列救不了错的配准」，
 > 而不是「放开 MD 就能缓解」。这个归因错误很容易一路传到最终报告里。
 
-### 三个会毁掉一次运行的坑
+### 四个会毁掉一次运行的坑
 
 1. **`addForce` 必须在 `Simulation(...)` 之前**。之后加的力不进已建好的 Context，
    于是最小化实际无约束，2.8 Å 的接触被撕开。移除约束后必须显式
    `sim.context.reinitialize(preserveState=True)`。
+   **实测踩过**：agent 把 `system.addForce(restraint)` 写在 `Simulation(...)` **之后**，
+   位置约束整条静默失效——脚本跑得动、能量也在降，只是没有任何东西把抗体拉回原位，
+   看日志完全看不出来。**加完力必须 `sim.context.reinitialize()`**，否则约束不存在。
 2. **OpenMM 位置是 nanometer**。把它当 Å 读会把 0.28 nm（= 2.8 Å）看成 0.28 Å 的
    碰撞，`d < 3.0` 阈值实际变成 30 Å 从而数出几十万个「重叠对」——一个纯粹的单位
    错误看起来像灾难性的物理失败，差点让人去改本来正确的代码。
@@ -158,6 +161,43 @@ stage 2：移除全部约束 + context.reinitialize(preserveState=True)，然后
    pdbfixer 随后按猜测位置补侧链，补出假碰撞。交付结构完整（pdbfixer 补 0 个原子）。
    无论用哪个输入，**组装后都要 pre-flight：距离明显不对就中止**，别让坏输入伪装
    成物理结果。
+4. **非键相互作用不许用 `NoCutoff`**——它是最容易把一次运行拖到「永远跑不完」的写法。
+   `createSystem(nonbondedMethod=NoCutoff)` 让 OpenMM 计算**全部** N² 对相互作用；
+   再配上隐式溶剂（GBn2 / OBC2），单次能量+力求值要几百毫秒到几秒，而 L-BFGS 最小化
+   `maxIterations=2000` 需要几千次评估 → 一次最小化要几小时。
+
+   **实测**（6753 原子，amber14 + `implicit/gbn2.xml`，CPU 平台，同一个复合物 PDB）：
+
+   | nonbondedMethod | 一次能量+力求值 | 2000 轮最小化粗估 |
+   | --- | --- | --- |
+   | `NoCutoff` | 0.86 s | ≈57 分钟（实测连跑三轮全部打满 25 分钟超时） |
+   | `CutoffNonPeriodic` 1.0 nm | 0.05 s | ≈3.3 分钟 |
+
+   **17 倍差距**。**OpenMM 8.x 里 `CutoffNonbonded` 已改名 `CutoffNonPeriodic`**，
+   照抄旧名字直接 `ImportError`（8.6 实测）。
+
+   **预检（跑之前必做）**：`createSystem` 之后计时一次
+   `context.getState(getEnergy=True, getForces=True)`。
+   **单次超过 0.5 s 就是踩了 N² 墙**，先把截断改掉再谈别的。
+
+   顺带：对接出来的复合物初始能量可以到 **10⁵ kcal/mol** 量级（实测 102902），
+   最小化不是可选项——所以最小化跑不完 = 这条设计永远出不来结果。
+
+### 平台选择：先枚举设备，别写死
+
+`mm.Platform.getNumPlatforms()` 通常给 `Reference / CPU / OpenCL`。
+**隐式溶剂 + 几千原子**时平台差别可能很大，但**必须先枚举 `getDevices()` 再选**：
+空设备列表时硬写 `OpenCL` 会在 Context 创建那一刻抛异常，而这类异常常常出现在长跑之后。
+实测本机（6753 原子、1.0 nm 截断、隐式溶剂）：
+
+| 平台 | 一次能量+力求值 | 2000 轮粗估 |
+| --- | --- | --- |
+| CPU | 0.041 s | ≈2.7 分钟 |
+| OpenCL 设备 0 | 0.052 s | ≈3.5 分钟 |
+| OpenCL 设备 1 | 0.041 s | ≈2.7 分钟 |
+
+**结论：这台机器上 OpenCL 没有优势**（设备没暴露独显给 OpenCL 运行时），CPU 与它持平。
+**所以省时间的关键是截断，不是换平台**——先改 `NoCutoff`，再考虑换平台。
 
 ### 这项验证能说和不能说的
 
