@@ -279,6 +279,43 @@ wsl.exe -d AF3Native -- bash -c "mkdir -p /esmfold2/bin && cp '<windows-home>/.m
 wsl.exe -d AF3Native -- bash /esmfold2/bin/fold.py /esmfold2/jobs/<job>.json
 ```
 
+For detached jobs, record the returned PID and use it as the sole cleanup check
+before restarting. Send `TERM`, wait briefly, then send `KILL` only if needed; after
+either signal, confirm that `/proc/<pid>` is absent rather than merely assuming the
+launcher exited:
+
+```bash
+pid=25980
+kill -TERM "$pid" 2>/dev/null || true
+for _ in $(seq 1 50); do
+  [ ! -d "/proc/$pid" ] && break
+  sleep 0.1
+done
+if [ -d "/proc/$pid" ]; then
+  kill -KILL "$pid" 2>/dev/null || true
+  for _ in $(seq 1 50); do
+    [ ! -d "/proc/$pid" ] && break
+    sleep 0.1
+  done
+fi
+if [ -d "/proc/$pid" ]; then
+  echo "PID $pid is still alive" >&2
+  exit 1
+fi
+echo "PID $pid cleaned up"
+```
+
+`output-guard.js` must treat a shutdown-stage stdout `EPIPE` as a closed pipe, not
+as a fatal error. Register the handler before starting output or installing shutdown
+handlers, and do not rethrow it:
+
+```javascript
+process.stdout.on('error', (err) => {
+  if (err && err.code === 'EPIPE') return;
+  throw err;
+});
+```
+
 Input JSON:
 
 ```json
