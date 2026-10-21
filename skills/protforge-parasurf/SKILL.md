@@ -69,11 +69,92 @@ gdown --id 1nd3npYK303e8owDBvW8Ygd5m9SD1puhR -O weights/Paragraph_expanded_best.
 | `Pecan_best.pth` | `1vZGH-T6K5_ShVma3dwLkLdkoivs09rSP` |
 | `Paragraph_expanded_best.pth` | `1nd3npYK303e8owDBvW8Ygd5m9SD1puhR` |
 
-**先测 `drive.google.com:443` 通不通再决定取法。** 实测该环境不通，HuggingFace 上也
+**先测 `drive.google.com:443` 通不通再决定取法。** 这台机器实测不通，HuggingFace 上也
 没有 ParaSurf 的权重仓库，官方 HF Space（`amelie-iska/ParaSurf`）的 `resolve/main/*.pth`
-全部 404——它自己也是运行时从 Drive 拉的。**没有任何镜像能替代**，国内网络下只能由
-使用者自行用浏览器/代理下载后放进 `$PROTFORGE_MODELS/parasurf/`。这一步走不通时，
-如实记为 GAP，不要用未验证来源的权重跑预测。
+全部 404——它自己也是运行时从 Drive 拉的。**没有任何镜像能替代**，只能由使用者自行用
+浏览器/代理下载后放进 `$PROTFORGE_MODELS/parasurf/`。
+
+### 权重现状（2026-10-21 起）：**已装好，在跑**
+
+使用者已手动下好三个权重，放在 `E:\oih\models\parasurf\`：
+
+```
+ParaSurf_best.pth                        （PECAN + Paragraph Expanded + MIPE 合并的总模型，默认用它）
+PECAN_best.pth
+Paragraph_expanded_entire_dataset_best.pth
+```
+
+服务端启动脚本读仓库根的 `.env`，里面已设
+`PROTFORGE_PARASURF_WEIGHTS=E:\oih\models\parasurf\ParaSurf_best.pth`，
+调度器 spawn agent 时整套环境原样传下去，所以 **agent 的 bash 里这个变量就在**。
+镜像 `parasurf:latest` 也已构建好（Docker 24/29 在跑）。
+
+**因此这一段里「权重不可得」是历史记录，不是现状。**
+
+> **铁律：先自己 `ls` 一下，别照抄本文件的现状陈述。**
+> `ls "$PROTFORGE_MODELS/parasurf"`（或 `ls E:/oih/models/parasurf`）看到 `.pth` 就**去跑**，
+> 不要因为「文档里说没有」就记 GAP。
+>
+> 反例（2026-10-21 真机踩到）：agent 自己 `ls` 的输出明明是
+> `PECAN_best.pth / ParaSurf_best.pth / Paragraph_expanded_entire_dataset_best.pth`，
+> 它的报告里却写「`E:/oih/models/parasurf` 为空目录，权重不可得」——
+> **和自己的工具输出矛盾**，还因此漏掉了本该做的交叉验证。
+> 记 GAP 的依据必须是**你这次跑出来的输出**，不是文档、不是上一轮的记忆。
+
+跑法：
+
+```bash
+bash "${PLUGIN_DIR}/skills/protforge-parasurf/scripts/parasurf.sh" \
+     "$antibody_pdb" "$job_name" "$weights.pth" "cpu"
+```
+
+第四个参数默认 `cpu`——**这份镜像装的是 CPU 版 torch**（见下面 ③），传 `cuda`
+会直接失败。
+
+**输入会被 runner 自动裁成两条链。** 上游 `antibody_input_recognition()`
+只接受**恰好 2 条链**（重链 + 轻链），而 ProtForge 交付的抗体文件是
+**三元复合物**（抗原 + VH + VL），直接喂进去上游会 `exit(1)` 并打印一句
+像「装坏了」的提示。runner 用 `scripts/extract_antibody_chains.py` 先把 H+L
+抽出来再喂，被丢掉的链会打印在 run.log 里：
+
+```
+PROTFORGE_PARASURF_CHAIN_INPUT_TOTAL: 3 (A=3156, H=1724, L=1572)
+PROTFORGE_PARASURF_CHAIN_DROPPED: A=3156
+PROTFORGE_PARASURF_CHAIN_SELECTED: H, L
+```
+
+注意这是**有意的**：ParaSurf 问的是「给定这条抗体，它结合抗原的哪里」，
+抗原不在输入里才是对的形态。
+
+**结果文件名只带残基的前缀。** 上游用 `basename.split('_')[0]` 命名，所以
+`PRL_capture_delivered_Fv.pdb` 的输出叫 `PRL_pred.pdb`（**不是**
+`PRL_capture_delivered_Fv_pred.pdb`）——找产物时别按输入名去找。
+
+跑完读 `output/<job>_parasurf/` 下的结果再下结论。**跑失败**（镜像缺失、权重读不了、
+Docker 没起）才是 GAP；**没跑**不算 GAP。
+
+### 实测耗时：450 秒
+
+2026-10-21 本机实测（CPU，223 残基的 Fv，交付的捕获抗体）：
+
+| 阶段 | 耗时 |
+|---|---|
+| pdb2pqr + surfpoints 生成 | 约 60 s |
+| 网络推理（grid 41，batch 64） | 约 360 s |
+| 口袋聚类 + 写盘 | 秒级 |
+| **合计** | **450 s ≈ 7.5 分钟** |
+
+这份镜像装的是 **CPU 版 torch**，网格采样和力场特征全在 CPU 上跑，
+**比看上去慢一个数量级**。两条推论：
+
+- **别用短 timeout 包它。** agent 常见的 `timeout 45` 那种写法，会把一次
+  本来能跑完的推理腰斩成「超时失败」，而且**没有任何产物可供复盘**——
+  跑它就别加 timeout，或至少给 20 分钟。
+- **它是可选的交叉验证，不是管线必经步骤。** 61 行的批量作业里每行都跑
+  ParaSurf，单这一项就是 7.5 小时。先把主链路的结论做实，再决定要不要
+  为关键行补这个交叉验证。
+
+平台的技能超时表里 parasurf 归 MED 档（2h），比默认 4h 早收口。
 
 ### 走官方 Dockerfile，但必须先修五处
 
@@ -303,7 +384,7 @@ docker build --progress=plain -t parasurf:latest -f Dockerfile.protforge . \
 
 ```bash
 bash "${PLUGIN_DIR}/skills/protforge-parasurf/scripts/parasurf.sh" \
-     "$antibody_pdb" "$job_name" "$weights.pth" "cuda"
+     "$antibody_pdb" "$job_name" "$weights.pth" "cpu"
 ```
 
 - `$antibody_pdb` — **抗体**结构的绝对路径，或 `inputs/` 下的文件名
@@ -326,7 +407,8 @@ python blind_predict_folder.py -i <目录> -w <权重> -d 0.2
 会在同一目录留下临时 `*.surfpoints`（结束会删）。
 
 所以 runner 会把输入**复制**一份到输出目录再跑——直接指向调用方的文件会在输入
-目录里堆产物。
+目录里堆产物。staging 分两层：`_input/raw/` 放原始输入，`_input/ab/` 放抽完
+两条链的抗体，上游的产物写在 `_input/ab/<stem>/` 里，runner 再抬到输出目录。
 
 runner 打印 `PROTFORGE_PARASURF_RESIDUE_FILES`、`PROTFORGE_PARASURF_POCKETS`
 和实际产出的文件列表。
@@ -343,6 +425,34 @@ runner 打印 `PROTFORGE_PARASURF_RESIDUE_FILES`、`PROTFORGE_PARASURF_POCKETS`
 
 ## 坑
 
+- **镜像的 ENTRYPOINT 会把命令整个吞掉——这是「跑成功但什么都没发生」的头号
+  原因。** 这份镜像的 ENTRYPOINT 是：
+
+  ```dockerfile
+  ENTRYPOINT ["/bin/bash","-c","source /opt/conda/bin/activate ParaSurf && exec bash"]
+  ```
+
+  末尾那句 `exec bash` **替换掉整个进程**，你传给 `docker run` 的 CMD 变成
+  bash 的 `$0` 和位置参数。于是：
+
+  ```bash
+  docker run --rm parasurf:latest python -V     # 零输出，rc=0
+  ```
+
+  容器起了一个没 tty 的交互 shell，读到 EOF 就退出——**看起来像跑通了**。
+  runner 因此显式覆盖 entrypoint，自己驱动 conda 环境：
+
+  ```bash
+  docker run --rm --entrypoint bash <image> \
+    -c "source /opt/conda/bin/activate ParaSurf && exec python -u blind_predict.py ..."
+  ```
+
+  **判据：`run.log` 是 0 字节 = 命令根本没执行**，不是「没预测到东西」。
+  runner 对这种情况报专门的错，不会让它混进「预测了 0 个界面」的结论里。
+  （真机踩过：2026-10-21 第一次跑，`run.log` 0 字节、rc=0、无 `*_pred.pdb`，
+  差点被当成「模型不认这个抗体」。真实原因是上面这条。）
+- **输入必须恰好 2 条链。** 见上面「跑法」一节。交付的抗体文件是三元复合物，
+  不裁链上游直接 `exit(1)`。
 - **权重不在 pip / HF，在 Google Drive。** 没有权重时脚本会 fail，
   不要让它跑出一个空输出然后当成「预测了 0 个界面」。
 - `dms` 没编译时，报错出现在**跑预测时**而不是安装时，看起来像模型坏了。
