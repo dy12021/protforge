@@ -26,8 +26,17 @@ description: |
 Host CLI, no Docker. Binary comes from crates.io:
 
 ```bash
-cargo install reglyco --locked --version 0.1.0
+# 版本号别抄旧文档：**0.1.0 已被上游撤下**（crates.io 上 reglyco 只剩
+# 0.2.0 / 0.2.1 / 0.2.2 / 0.2.3）。0.2.x 全部要求 **rustc ≥ 1.97**
+# （实测装 0.2.3 时报 "requires rustc 1.97 or newer, while the currently
+# active rustc version is 1.96.0"）——先 `rustup update stable` 再装。
+cargo install reglyco --locked --version 0.2.3
 ```
+
+上游 0.2.x 把工程拆成了 workspace（`reglyco-core` / `reglyco-build` /
+`reglyco-relax` / `reglyco-cli` …），但**可执行文件仍由 `reglyco` 这个 crate
+提供**（它的 `bin_names` 就是 `reglyco`）；`reglyco-cli` 只是库侧那一份，
+装它不会给你命令行。
 
 Licence note: **ReGlyco (github.com/Ojas-Singh/Re-Glyco) is AGPL-3.0-only.**
 GlycoShape data is CC BY-NC-ND (academic). Both are fine for research; neither
