@@ -55,7 +55,16 @@ Fits a single GlcNAc into every `N-X-S/T` sequon and reports which pass.
 membership; `structure.pdb` holds only the mutually compatible subset.
 Blocked sites are never written with placeholder coordinates.
 
-Add `--calculate-hotspots` to emit the binder-design mask.
+**`--calculate-hotspots` 不在 `scan` 上了**（实测 0.2.3：`scan --help` 里没有它，
+但 `ensemble --help` 里有，别名 `hotspots`）。要出 binder-design mask 就用
+`ensemble`：
+
+```bash
+reglyco ensemble --protein target.pdb --glycan G14843DJ \
+  --calculate-hotspots --output out/ens
+```
+
+（`scan` 其余参数、`build`/`relax`/`ensemble` 文档里写的那些选项在 0.2.3 都还在。）
 
 ### 2. Build — attach specific glycans and resolve clashes
 
