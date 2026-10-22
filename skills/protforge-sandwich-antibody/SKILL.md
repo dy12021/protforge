@@ -53,6 +53,31 @@ Never spend GPU hours on a candidate that a seconds-long check can reject.
   precision. Useful only as a coarse tiebreak among clearly separated designs.
 - **A single relaxation's minimum distance.** See non-negotiable 4.
 
+## Time budget — probe small before scaling
+
+Measured on 2026-10-22 (a 61-row batch): the median row took **8.4 hours**,
+and the slowest commands were all **rigid-body search scripts run straight
+into their timeout** (`place_fv_alt` / `place_fv_select` /
+`place_fv_multiseed`, each 3000-3500 s). One command burns an hour and its
+output may still be thrown away.
+
+Rules:
+
+1. **No single command over 10 minutes.** If a step needs longer, split it:
+   run one seed / one conformer first (<= 2 min), check the result is sane,
+   then scale up.
+2. **Search scripts get probed small first.** Seeds, steps, grid resolution:
+   start at the minimum, confirm it converges and the numbers are physical,
+   then scale up.
+3. **Two attempts per script, then change approach.** Editing the same script
+   twice without success means the idea is wrong -- switch tools or change the
+   criterion. Do not keep grinding it.
+4. **Never use a timeout above 600 s.** A command that runs into its ceiling
+   is usually spinning in place: cut it at 10 minutes and you still get the
+   intermediate output, while 3500 s only gets you the word "timed out".
+5. **Write the intermediate result to disk** before scaling up, so a killed
+   run still leaves something behind.
+
 ## Procedure
 
 ### 0. Antigen facts
