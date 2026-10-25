@@ -246,3 +246,19 @@ query — the scripts print a warning when a database returns only the query row
 - **WSL reclaimed mid-job** — this is silent and loses everything. Long jobs need BOTH `setsid nohup` inside WSL *and* a host-side `wsl.exe -d AF3Native -- sleep infinity` launched via `Start-Process -WindowStyle Hidden`. An in-VM `/root/heartbeat.sh` is NOT enough: it dies with the VM and cannot keep the VM alive. Diagnose a reclaim by comparing `cat /proc/sys/kernel/random/boot_id` and `/proc/uptime` against your last note — a reclaimed VM shows a new boot_id and a few seconds of uptime, with nothing in the job log. Anything cached on disk survives, so keep the MSA cache outside the job script and simply re-run the step.
   - Search returns only the query row → the sequence is genuinely novel (common for
   designed binders); that is a correct answer, not a failure.
+
+## 调用接口（手动模式）
+
+入口 `scripts/protforge-af3-msa.sh`：
+
+| # | 参数 | 说明 |
+|---|---|---|
+| 1 | `fasta_path` | 查询 FASTA（宿主路径） |
+| 2 | `dbs` | 默认 `uniref90,bfd`；`mgnify` 是可选的 |
+| 3 | `n_cpu` | 默认 12（jackhmmer 线程数） |
+| 4 | `job_name` | 平台会自动加 `t<任务号>_` 前缀 |
+
+产物：每条链一份 `.a3m`，落在 `$PROTFORGE_DATA/outputs/<job_name>_af3msa/`。
+
+> `oih_shared_msa.py` 的位置写在 `scripts/local.env` 的 `AF3_MSA_TOOLS_DIR`
+> ——站点相关路径，不进仓库。数据库在 `/db` **原地读**，不拷贝、不建索引。

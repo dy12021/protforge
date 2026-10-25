@@ -1,0 +1,29 @@
+id: alphafold-db
+version: "1.0"
+display_name: "AlphaFold DB 结构下载"
+category: "结构预测"
+batch: true
+timeout_s: 1800
+params:
+  - name: accession
+    type: string
+    required: true
+    label: "UniProt 编号"
+    description: "UniProt 编号（如 P69905）或 AF DB 条目号（AF-P69905-F1）。"
+  - name: files
+    type: string
+    required: false
+    default: "cif,pdb,pae,plddt"
+    label: "下载哪些"
+    description: "逗号分隔：cif,pdb,pae,plddt,msa,bcif,pae-img,am。msa（.a3m）可能几十 MB。"
+  - name: query_only
+    type: bool
+    required: false
+    default: "false"
+    label: "只查不下载"
+    description: "只打印摘要（平均 pLDDT、分段情况），不下载文件。"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    label: "任务名"

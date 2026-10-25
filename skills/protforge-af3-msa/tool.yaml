@@ -1,0 +1,29 @@
+id: af3-msa
+version: "1.0"
+display_name: "AF3 数据库 MSA 检索"
+category: "序列分析"
+batch: true
+timeout_s: 28800
+params:
+  - name: fasta_path
+    type: path
+    required: true
+    label: "查询 FASTA"
+    description: "要检索的序列。产物是每条链一份 .a3m，OpenDDE 与 ESMFold2(full) 都能用。"
+  - name: dbs
+    type: string
+    required: false
+    default: "uniref90,bfd"
+    label: "数据库"
+    description: "逗号分隔。mgnify 是可选的——它放在 /mnt/e 上，读速 ~168 MB/s，会主导整次运行。"
+  - name: n_cpu
+    type: int
+    required: false
+    default: 12
+    label: "CPU 线程数"
+    description: "jackhmmer 线程数。"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    label: "任务名"

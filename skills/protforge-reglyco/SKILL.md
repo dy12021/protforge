@@ -135,3 +135,23 @@ this filtered 11% of 1201 designs in ~3 CPU-hours):
 - Timeout (4000 s hard limit per job) — reduce sites or use `--no-report`.
 - Attachment "genuinely infeasible" — that site is blocked; treat as Fail rather
   than retrying with different seeds.
+
+## 调用接口（手动模式）
+
+入口 `scripts/protforge-reglyco.sh`（宿主原生 CLI，不在容器里）：
+
+| # | 参数 | 说明 |
+|---|---|---|
+| 1 | `pdb_path` | 要检查的结构 |
+| 2 | `subcommand` | `scan` / `ensemble` / `build` / `relax`，默认 `scan` |
+| 3 | `glycan` | GlyTouCan ID，默认 `G14843DJ` |
+| 4 | `attach` | `build` 专用，格式 `A:64=G98687PM`，多个用 `;` 隔 |
+| 5 | `hotspots` | 默认 `false`（只有 `ensemble` 有 `--calculate-hotspots`） |
+| 6 | `job_name` | 平台会自动加 `t<任务号>_` 前缀 |
+
+产物在 `$PROTFORGE_DATA/outputs/<job_name>_reglyco/`：`scan.json`、
+`structure.pdb`（只含彼此兼容的位点）、`report.json`。
+
+> **做 binder 冲突测试时喂完整复合物**（靶标链 + 设计出来的 binder），
+> 不是脱糖的裸靶标。编号用的是**输入 PDB 的编号**，不是 UniProt——
+> AF3 会把成熟链从 1 重新编号，选 `attach` 位点前要先换算。

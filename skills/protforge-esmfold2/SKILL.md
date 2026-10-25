@@ -713,3 +713,30 @@ Rank composites by **ipTM**, monomers by mean **pLDDT**. Report which variant ra
   `wsl.exe -d AF3Native -- bash <tools-dir>/board.sh`
 - Do not edit a shell script while bash is executing it — bash reads by byte
   offset, so an in-place edit corrupts the running job.
+
+## 调用接口（手动模式）
+
+工具市场的入口是 `scripts/protforge-esmfold2.sh`，参数按契约顺序**位置传**：
+
+| # | 参数 | 说明 |
+|---|---|---|
+| 1 | `sequence` | 逗号分隔的链序列（只接受 20 种标准氨基酸） |
+| 2 | `variant` | `full` / `fast`，默认 `fast` |
+| 3 | `msa_path` | 第一条链的 a3m；**只有 `full` 认** |
+| 4 | `num_loops` | 默认 1 |
+| 5 | `num_sampling_steps` | 默认 14 |
+| 6 | `num_diffusion_samples` | 默认 1 |
+| 7 | `seed` | 默认 0 |
+| 8 | `job_name` | 平台会自动加 `t<任务号>_` 前缀 |
+
+产物落在 `$PROTFORGE_DATA/outputs/<job_name>_esmfold2/`：`<job_name>.cif`
+与 `<job_name>_metrics.json`（ipTM / pTM / pLDDT / 峰值显存 / 耗时）。
+
+> **默认参数是按「20 GB 显卡能跑完」定的**：`fast` + `num_loops=1` +
+> `num_sampling_steps=14`，实测峰值 13.97 GiB。`full` 变体在同样参数下实测
+> 18.61 GiB，仍然 OOM——**显存不够时先降 `num_loops`，不是降步数**：
+> 高水位由第一个去噪步的原子级 IPA 决定，一步放不下，步数再少也没用。
+>
+> 入口会自己找本地权重快照并设 `HF_HUB_OFFLINE=1`：没有这一步，
+> `ESMFold2InputBuilder()` 会去 huggingface.co 拉 417 MB 的 `ccd.pkl`，
+> 在本机会静默卡 28 分钟——**看起来像卡死，不像配置错**。

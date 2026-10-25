@@ -1,0 +1,62 @@
+id: opendde
+version: "1.0"
+display_name: "OpenDDE 共折叠"
+category: "结构预测"
+batch: true
+timeout_s: 28800
+params:
+  - name: sequence
+    type: string
+    required: true
+    label: "序列"
+    description: "逗号分隔的链序列（每条链一个 proteinChain）。只接受 20 种标准氨基酸。"
+  - name: msa_path
+    type: path
+    required: false
+    default: ""
+    label: "MSA（a3m）"
+    description: "第一条链的 unpairedMsaPath。OpenDDE 自己推导配对比对，不用给。"
+  - name: checkpoint
+    type: string
+    required: false
+    default: "opendde_abag.pt"
+    label: "权重文件"
+    description: "权重目录里的文件名。opendde_abag.pt = 抗体-抗原微调；opendde.pt = 通用模型。"
+  - name: sample
+    type: int
+    required: false
+    default: 1
+    label: "采样个数"
+    description: "扩散采样个数。报 illegal memory access 就降它。"
+  - name: step
+    type: int
+    required: false
+    default: 200
+    label: "扩散步数"
+  - name: cycle
+    type: int
+    required: false
+    default: 10
+    label: "Pairformer 轮数"
+  - name: device
+    type: string
+    required: false
+    default: "cuda"
+    label: "设备"
+    description: "auto | cpu | cuda | mps"
+  - name: use_msa
+    type: bool
+    required: false
+    default: "true"
+    label: "用 MSA"
+  - name: use_template
+    type: bool
+    required: false
+    default: "false"
+    label: "用模板"
+    description: "开模板会去找 PDB 同源模板；缺模板 mmCIF 时会失败。"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    label: "任务名"

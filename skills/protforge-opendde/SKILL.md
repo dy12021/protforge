@@ -155,3 +155,28 @@ Do not present it as a universal upgrade.
 - Invoke via `wsl.exe -d AF3Native -- bash <script> <args>`.
 - Bind nothing from `E:` for the search DB — it already lives at `/db` inside the
   distro.
+
+## 调用接口（手动模式）
+
+入口 `scripts/protforge-opendde.sh`，参数按顺序位置传：
+
+| # | 参数 | 说明 |
+|---|---|---|
+| 1 | `sequence` | 逗号分隔的链序列（只接受 20 种标准氨基酸） |
+| 2 | `msa_path` | 第一条链的 `unpairedMsaPath`（`.a3m`） |
+| 3 | `checkpoint` | `$OPENDDE_ROOT_DIR` 下的文件名，默认 `opendde_abag.pt` |
+| 4 | `sample` | 默认 1 |
+| 5 | `step` | 默认 200 |
+| 6 | `cycle` | 默认 10 |
+| 7 | `device` | 默认 `cuda` |
+| 8 | `use_msa` | 默认 `true` |
+| 9 | `use_template` | 默认 `false` |
+| 10 | `job_name` | 平台会自动加 `t<任务号>_` 前缀 |
+
+入口自己拼 OpenDDE 要的**顶层 list** 格式（`[{"sequences": [...]}]`），
+不用手写 job JSON。产物在 `$PROTFORGE_DATA/outputs/<job_name>_opendde/`。
+
+> `OPENDDE_ROOT_DIR` 必须在 `scripts/local.env` 里指向**含 `common/components.cif`
+> 的目录**——否则代码会偷偷去 huggingface.co 下载（本机被拒），跑起来像模型坏了。
+> 抗体-抗原用 `opendde_abag.pt`，通用模型用 `opendde.pt`；
+> `-n/--model_name` 只认 `opendde_v1`。

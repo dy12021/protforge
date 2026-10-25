@@ -1,0 +1,41 @@
+id: reglyco
+version: "1.0"
+display_name: "ReGlyco 糖基化位点校验"
+category: "结构分析"
+batch: true
+timeout_s: 7200
+params:
+  - name: pdb_path
+    type: path
+    required: true
+    label: "结构文件"
+    description: "要检查的结构。做「糖链冲突」测试时要喂**完整复合物**（靶标链 + 设计出来的 binder）。"
+  - name: subcommand
+    type: string
+    required: false
+    default: "scan"
+    label: "子命令"
+    description: "scan = 哪些 sequon 真被占用；ensemble = 糖链集合 + 热点；build = 挂糖并解冲突；relax = 糖链松弛。"
+  - name: glycan
+    type: string
+    required: false
+    default: "G14843DJ"
+    label: "糖链 ID"
+    description: "GlyTouCan ID，例如 G14843DJ。查 glycoshape.org。"
+  - name: attach
+    type: string
+    required: false
+    default: ""
+    label: "挂载位点"
+    description: "build 专用，格式 'A:64=G98687PM'，多个用分号隔。编号用的是**输入 PDB 的编号**，不是 UniProt。"
+  - name: hotspots
+    type: bool
+    required: false
+    default: "false"
+    label: "算热点"
+    description: "加 --calculate-hotspots。0.2.3 里这个选项只在 ensemble 上，不在 scan 上。"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    label: "任务名"

@@ -1,0 +1,54 @@
+id: esmfold2
+version: "1.0"
+display_name: "ESMFold2 全原子共折叠"
+category: "结构预测"
+batch: true
+timeout_s: 28800
+params:
+  - name: sequence
+    type: string
+    required: true
+    label: "序列"
+    description: "逗号分隔的链序列（每条链一个蛋白链）。只接受 20 种标准氨基酸。"
+  - name: variant
+    type: string
+    required: false
+    default: "fast"
+    label: "变体"
+    description: "fast = 24 层，单序列，快（20 GB 显卡能跑）；full = 48 层，接受 MSA，最终排名用。"
+  - name: msa_path
+    type: path
+    required: false
+    default: ""
+    label: "MSA（a3m）"
+    description: "第一条链的 a3m 比对文件。只有 full 变体认；fast 没有 MSA 编码器，传了会被静默丢掉。"
+  - name: num_loops
+    type: int
+    required: false
+    default: 1
+    label: "num_loops"
+    description: "trunk 重复次数。显存不够时先降它。"
+  - name: num_sampling_steps
+    type: int
+    required: false
+    default: 14
+    label: "采样步数"
+    description: "去噪步数。不是显存杠杆——一步放不下，步数再少也没用。"
+  - name: num_diffusion_samples
+    type: int
+    required: false
+    default: 1
+    label: "采样个数"
+    description: "扩散采样个数，大于 1 时按 ipTM 排序取最优。"
+  - name: seed
+    type: int
+    required: false
+    default: 0
+    label: "随机种子"
+    description: "扩散头是随机的，种子固定才能复现。"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    label: "任务名"
+    description: "产物目录名。平台会自动加任务号前缀。"

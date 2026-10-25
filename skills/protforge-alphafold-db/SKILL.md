@@ -73,3 +73,20 @@ Input: "帮我下载人血红蛋白 α 链的 AlphaFold 结构（P69905）并看
 Run: `python "${PLUGIN_DIR}/skills/protforge-alphafold-db/scripts/afdb.py" P69905 --out <data-root>/data/outputs/P69905_afdb`
 Output: mean pLDDT 98.06, 99.3% residues very-high confidence (model v6); CIF/PDB/confidence/PAE
 saved under the output dir; entry page https://alphafold.ebi.ac.uk/entry/P69905.
+
+## 调用接口（手动模式）
+
+入口 `scripts/protforge-alphafold-db.sh`：
+
+| # | 参数 | 说明 |
+|---|---|---|
+| 1 | `accession` | UniProt 编号（如 `P69905`）或 AF DB 条目号 |
+| 2 | `files` | 默认 `cif,pdb,pae,plddt`；可选 `msa,bcif,pae-img,am` |
+| 3 | `query_only` | 默认 `false`；`true` = 只查不下载 |
+| 4 | `job_name` | 平台会自动加 `t<任务号>_` 前缀 |
+
+产物在 `$PROTFORGE_DATA/outputs/<job_name>_afdb/`。
+
+> 有编号但查不到条目时**不要重试**——那说明这个序列不在 AlphaFold DB 的
+> UniProt 集合里（太长的蛋白、新设计的序列），该走本地预测
+> （`protforge-alphafold3` / `protforge-esmfold2`），而不是反复拉网络。

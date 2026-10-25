@@ -151,6 +151,51 @@ protforge_container_path() {
   fi
 }
 
+# Translate a Windows path into the WSL form: E:\a\b -> /mnt/e/a/b.
+#
+# The AF3Native distro mounts the Windows drives at /mnt/<letter>. A path that
+# is already POSIX (/mnt/e/x, /db, /esmfold2/out) is returned unchanged.
+#
+# **This is not the same as protforge_container_path**: that one maps a host
+# path into a *container* mount point; this one maps a host path into the
+# *WSL namespace*. Mixing them up sends files to a path that does not exist
+# inside the distro -- and the failure shows up as "no such file", not as a
+# clear "wrong namespace".
+protforge_wsl_path() {
+  local p="$1"
+  p="${p//\\//}"                       # backslashes -> slashes
+  local drive="${p%%:*}"
+  local rest="${p#*:}"
+  local lower
+  lower="$(printf '%s' "$drive" | tr 'A-Z' 'a-z')"
+  case "$p" in
+    [A-Za-z]:/*|[A-Za-z]:) printf '/mnt/%s%s\n' "$lower" "$rest" ;;
+    *)                     printf '%s\n' "$p" ;;
+  esac
+}
+
+# Translate a POSIX path into the Windows form (C:\a\b) for **native Windows**
+# programs (reglyco.exe, the host python).
+#
+# Git Bash hands the native program a POSIX path and the program resolves it
+# against the drive it happens to be on -- reglyco.exe looking for
+# "/e/data/x.pdb" ends up at "C:\e\data\x.pdb" and reports "file not found"
+# for a file that is right there. A path that is already a Windows path
+# (E:/a\b) is returned unchanged; under WSL there is no cygpath and the
+# POSIX path is already correct.
+protforge_win_path() {
+  local p="$1"
+  case "$p" in
+    [A-Za-z]:*) printf '%s\n' "$p" ;;
+    /*) if command -v cygpath >/dev/null 2>&1; then
+          cygpath -w "$p"
+        else
+          printf '%s\n' "$p"
+        fi ;;
+    *) printf '%s\n' "$p" ;;
+  esac
+}
+
 # Ensure a container is running; start it via compose if absent.
 protforge_ensure_container() {
   local want="$1"
