@@ -1,0 +1,31 @@
+id: vina-gpu
+version: "1.0"
+display_name: "Vina-GPU 分子对接"
+category: "对接"
+batch: true
+timeout_s: 7200
+params:
+  - name: receptor
+    type: string
+    required: false
+    default: ""
+  - name: ligand
+    type: string
+    required: false
+    default: ""
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+  - name: center_x
+    type: string
+    required: false
+    default: ""
+  - name: center_y
+    type: string
+    required: false
+    default: ""
+  - name: center_z
+    type: string
+    required: false
+    default: ""

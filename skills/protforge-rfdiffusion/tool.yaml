@@ -1,0 +1,30 @@
+id: rfdiffusion
+version: "1.0"
+display_name: "RFdiffusion 蛋白骨架生成"
+category: "骨架生成"
+batch: true
+timeout_s: 28800
+params:
+  - name: target_pdb
+    type: path
+    required: false
+    default: ""
+    description: "absolute host path or filename under `inputs/`"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+  - name: contig
+    type: string
+    required: true
+    default: ""
+    description: "e.g. `A27-192/0 60-80` (quote it; the `/0` chainbreak is required"
+  - name: hotspots
+    type: string
+    required: false
+    default: ""
+    description: "e.g. `A71,A74,A75`; pass `none` for unconditional design"
+  - name: num_designs
+    type: string
+    required: false
+    default: ""

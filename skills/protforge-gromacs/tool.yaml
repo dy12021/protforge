@@ -1,0 +1,21 @@
+id: gromacs
+version: "1.0"
+display_name: "GROMACS 分子动力学模拟"
+category: "分子动力学"
+batch: true
+timeout_s: 28800
+params:
+  - name: pdb_path
+    type: path
+    required: false
+    default: ""
+    description: "absolute host path or filename under inputs/. Must be a"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+  - name: steps
+    type: string
+    required: false
+    default: "5000."
+    description: "MD steps for nvt/npt/md, default 5000. Use ~100 for smoke tests."

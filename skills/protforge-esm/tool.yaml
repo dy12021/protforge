@@ -1,0 +1,21 @@
+id: esm
+version: "1.0"
+display_name: "ESM 蛋白语言模型嵌入"
+category: "序列分析"
+batch: true
+timeout_s: 7200
+params:
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+  - name: sequences
+    type: string
+    required: false
+    default: ""
+    description: "comma-separated amino-acid sequences (no FASTA headers), e.g."
+  - name: mode
+    type: string
+    required: false
+    default: ""
+    description: "`embed` (default) or `score`."

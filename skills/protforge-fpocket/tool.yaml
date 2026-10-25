@@ -1,0 +1,11 @@
+id: fpocket
+version: "1.0"
+display_name: "Fpocket 口袋检测"
+category: "结构分析"
+batch: true
+timeout_s: 600
+params:
+  - name: pdb_path
+    type: path
+    required: false
+    default: ""

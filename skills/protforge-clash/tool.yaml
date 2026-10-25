@@ -1,0 +1,26 @@
+id: clash
+version: "1.0"
+display_name: "碰撞检测与几何校验"
+category: "结构分析"
+batch: true
+params:
+  - name: pdb_path
+    type: path
+    required: true
+    default: ""
+    description: "输入结构（绝对路径，或 `inputs/` 下的文件名）（required）"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "任务名，默认 `clash`"
+  - name: mode
+    type: string
+    required: false
+    default: ""
+    description: "`report`（只报告，默认）或 `repair`（推开碰撞原子后另存）"
+  - name: threshold
+    type: string
+    required: false
+    default: ""
+    description: "碰撞距离阈值（埃），默认 `2.0`"

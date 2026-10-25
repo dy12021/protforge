@@ -1,0 +1,27 @@
+id: discotope3
+version: "1.0"
+display_name: "DiscoTope-3 表位预测"
+category: "结构分析"
+batch: true
+timeout_s: 600
+params:
+  - name: pdb_path
+    type: path
+    required: true
+    default: ""
+    description: "absolute host path or filename under inputs/ (required)"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "output folder name, default: PDB stem"
+  - name: threshold
+    type: float
+    required: false
+    default: "0.5"
+    description: "calibrated-score epitope threshold, default `0.5`"
+  - name: multichain
+    type: string
+    required: false
+    default: "false"
+    description: "`true` to score the whole complex (default `false`, single chain)"

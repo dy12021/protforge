@@ -1,0 +1,26 @@
+id: autodock-gpu
+version: "1.0"
+display_name: "AutoDock-GPU 分子对接"
+category: "对接"
+batch: true
+timeout_s: 7200
+params:
+  - name: fld_file
+    type: path
+    required: false
+    default: ""
+    description: "the `<name>.maps.fld` grid file (absolute host path or filename"
+  - name: ligand_pdbqt
+    type: string
+    required: false
+    default: ""
+    description: "ligand in pdbqt format."
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+  - name: num_poses
+    type: int
+    required: false
+    default: "9"
+    description: "docking runs; default 9 (the tool gets `--nrun 2*num_poses`)."

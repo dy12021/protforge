@@ -1,0 +1,32 @@
+id: proteinmpnn
+version: "1.0"
+display_name: "ProteinMPNN 序列设计"
+category: "序列设计"
+batch: true
+timeout_s: 28800
+params:
+  - name: pdb_path
+    type: path
+    required: true
+    default: ""
+    description: "absolute host path or filename under inputs/ (required)"
+  - name: chains
+    type: string
+    required: false
+    default: "A"
+    description: "chain(s) to design, comma-separated, default `A`"
+  - name: num_sequences
+    type: int
+    required: false
+    default: "8"
+    description: "sequences per target, default `8`"
+  - name: sampling_temp
+    type: float
+    required: false
+    default: "0.1"
+    description: "sampling temperature, default `0.1` (lower = closer to wild-type-like)"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "output folder name, default: PDB stem"

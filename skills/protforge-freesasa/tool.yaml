@@ -1,0 +1,15 @@
+id: freesasa
+version: "1.0"
+display_name: "FreeSASA 溶剂可及表面积"
+category: "结构分析"
+batch: true
+timeout_s: 600
+params:
+  - name: pdb_path
+    type: path
+    required: false
+    default: ""
+  - name: job_name
+    type: string
+    required: false
+    default: ""

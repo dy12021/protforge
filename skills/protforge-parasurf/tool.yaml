@@ -1,0 +1,21 @@
+id: parasurf
+version: "1.0"
+display_name: "ParaSurf 抗体表面热点"
+category: "结构分析"
+batch: true
+timeout_s: 7200
+params:
+  - name: antibody_pdb
+    type: path
+    required: false
+    default: ""
+    description: "**抗体**结构的绝对路径，或 `inputs/` 下的文件名"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "输出目录名，默认取输入文件名"
+  - name: weights
+    type: string
+    required: false
+    default: ""

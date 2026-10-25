@@ -1,0 +1,21 @@
+id: diffdock
+version: "1.0"
+display_name: "DiffDock 对接预测"
+category: "对接"
+batch: true
+timeout_s: 7200
+params:
+  - name: receptor_pdb
+    type: path
+    required: false
+    default: ""
+    description: "absolute host path or filename under inputs/ (PDB)."
+  - name: smiles
+    type: string
+    required: false
+    default: ""
+    description: "ligand SMILES (quote it)."
+  - name: job_name
+    type: string
+    required: false
+    default: ""

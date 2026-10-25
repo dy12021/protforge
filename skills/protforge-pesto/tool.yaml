@@ -1,0 +1,27 @@
+id: pesto
+version: "1.0"
+display_name: "PeSTo 热点残基预测"
+category: "结构分析"
+batch: true
+timeout_s: 7200
+params:
+  - name: pdb_path
+    type: path
+    required: true
+    default: ""
+    description: "absolute host path or filename under inputs/ (required)"
+  - name: threshold
+    type: float
+    required: false
+    default: "0.5"
+    description: "probability cutoff for hotspot calling, default `0.5`"
+  - name: chain_id
+    type: string
+    required: false
+    default: ""
+    description: "optional; restrict prediction to this chain (extracted with gemmi)"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "output folder name, default: PDB stem"

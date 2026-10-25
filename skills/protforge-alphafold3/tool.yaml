@@ -1,0 +1,17 @@
+id: alphafold3
+version: "1.0"
+display_name: "AlphaFold3 蛋白质结构预测"
+category: "结构预测"
+batch: true
+timeout_s: 14400
+params:
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "short lowercase job id, e.g. `her2_design_1`."
+  - name: sequence
+    type: path
+    required: false
+    default: ""
+    description: "amino-acid sequence (single-letter, no spaces), or a FASTA/PDB path is"

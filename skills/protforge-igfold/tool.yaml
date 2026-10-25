@@ -1,0 +1,27 @@
+id: igfold
+version: "1.0"
+display_name: "IgFold 抗体结构预测"
+category: "抗体设计"
+batch: true
+timeout_s: 14400
+params:
+  - name: job_name
+    type: string
+    required: true
+    default: ""
+    description: "job/output folder name (required)"
+  - name: heavy_seq
+    type: string
+    required: true
+    default: ""
+    description: "heavy chain (or nanobody VHH) amino-acid sequence, one letter code (required)"
+  - name: light_seq
+    type: string
+    required: false
+    default: ""
+    description: "light chain sequence; empty for nanobodies (default: empty)"
+  - name: do_refine
+    type: string
+    required: false
+    default: "false"
+    description: "run refinement stage, default `false`"

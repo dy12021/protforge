@@ -1,0 +1,22 @@
+id: polyxpert
+version: "1.0"
+display_name: "PolyXperT 表面性质"
+category: "结构分析"
+batch: true
+timeout_s: 14400
+params:
+  - name: input_tsv
+    type: string
+    required: false
+    default: ""
+    description: "制表符分隔，`Name`/`VH`/`VL` 三列"
+  - name: job_name
+    type: string
+    required: false
+    default: ""
+    description: "输出目录名，默认取输入文件名"
+  - name: polyxpert_home
+    type: string
+    required: false
+    default: ""
+    description: "PolyXpert 仓库根，默认 `$PROTFORGE_MODELS/PolyXpert`"

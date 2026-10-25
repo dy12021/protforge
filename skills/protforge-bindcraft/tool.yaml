@@ -1,0 +1,32 @@
+id: bindcraft
+version: "1.0"
+display_name: "BindCraft 结合体设计"
+category: "骨架生成"
+batch: true
+timeout_s: 28800
+params:
+  - name: target_pdb
+    type: path
+    required: true
+    default: ""
+    description: "absolute host path or filename under inputs/ (required)"
+  - name: target_chains
+    type: string
+    required: true
+    default: ""
+    description: "target chain(s), e.g. `A` or `A,B` (required)"
+  - name: hotspots
+    type: string
+    required: true
+    default: ""
+    description: "comma-separated target residue numbers to bias binding, e.g. `56,57` (required)"
+  - name: job_name
+    type: string
+    required: true
+    default: ""
+    description: "job/output folder name (required)"
+  - name: num_final_designs
+    type: int
+    required: false
+    default: "5"
+    description: "number of final binders to accept, default `5`"
